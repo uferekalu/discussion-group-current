@@ -18,6 +18,7 @@ import {
   ProfileResponse,
 } from "@/utils/interface";
 import { Reusables } from "@/utils/Reusables";
+import { getCookie, setCookie } from "@/utils/utility";
 
 const initialState: AuthState = {
   user: null,
@@ -65,12 +66,15 @@ export const login = createAsyncThunk<
     });
     const { data, token } = response.data;
     // Store the token in a secure cookie
-    document.cookie = cookie.serialize("token", token, {
-      sameSite: "strict",
-      secure: true,
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
-    });
+    if (token) {
+      // Store the token in a secure cookie
+      setCookie("token", token, { maxAge: 60 * 60 * 24 * 7 });
+      return { data, token };
+    } else {
+      // Handle the case where the token is not present in the response
+      console.error("Token not found in the response.");
+      return thunkAPI.rejectWithValue("Token not found in the response.");
+    }
     return { data, token };
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.response.data);
@@ -91,7 +95,6 @@ export const getUserProfile = createAsyncThunk<AuthUser, { rejectValue: any }>(
   "group/getGroup",
   async (thunkAPI) => {
     try {
-      const { getCookie } = Reusables();
       const token: string | null = getCookie("token");
       if (token) {
         const decodedToken: AuthUser = jwtDecode(token);
@@ -120,15 +123,10 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
     },
     logoutUser(state) {
+      setCookie("token", "", { expires: "Thu, 01, Jan 1970 00:00:00 GMT" });
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      document.cookie = cookie.serialize("token", "", {
-        sameSite: "strict",
-        secure: true,
-        expires: new Date(0),
-        path: "/",
-      });
     },
     setUser(state, action: PayloadAction<AuthUser>) {
       state.user = action.payload;
@@ -152,11 +150,19 @@ const authSlice = createSlice({
       }
     });
     builder.addCase(registerUser.rejected, (state, action) => {
-      return {
-        ...state,
-        registerStatus: "rejected",
-        registerError: `${action.payload.error}`,
-      };
+      if (action.payload) {
+        return {
+          ...state,
+          registerStatus: "rejected",
+          registerError: `${action.payload.error}`,
+        };
+      } else {
+        return {
+          ...state,
+          registerStatus: "rejected",
+          registerError: "An error occurred",
+        };
+      }
     });
     builder.addCase(login.pending, (state, action) => {
       return {
@@ -165,7 +171,7 @@ const authSlice = createSlice({
       };
     });
     builder.addCase(login.fulfilled, (state, action) => {
-      if (action.payload) {
+      if (action.payload.token) {
         const user: DecodedUser = jwtDecode(action.payload.token);
         return {
           ...state,
@@ -175,15 +181,20 @@ const authSlice = createSlice({
           isAuthenticated: true,
         };
       } else {
-        return state;
+        return {
+          ...state,
+          // loginStatus: "rejected",
+          // isAuthenticated: false,
+          // loginError: "An error occurred",
+        };
       }
     });
-    builder.addCase(login.rejected, (state, action) => {
+    builder.addCase(login.rejected, (state, action: any) => {
       return {
         ...state,
         loginStatus: "rejected",
         isAuthenticated: false,
-        loginError: `${action.payload.error}`,
+        loginError: action.payload.error,
       };
     });
     builder.addCase(getUserProfile.pending, (state, action) => {
@@ -204,12 +215,21 @@ const authSlice = createSlice({
       }
     });
     builder.addCase(getUserProfile.rejected, (state, action: any) => {
-      return {
-        ...state,
-        user: null,
-        getProfileStatus: "rejected",
-        getProfileError: action.payload.error,
-      };
+      if (action.payload) {
+        return {
+          ...state,
+          user: null,
+          getProfileStatus: "rejected",
+          getProfileError: action.payload.error,
+        };
+      } else {
+        return {
+          ...state,
+          user: null,
+          getProfileStatus: "rejected",
+          getProfileError: "An error occurred",
+        };
+      }
     });
   },
 });

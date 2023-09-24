@@ -9,6 +9,8 @@ interface IButton {
   mouseResult: number | string | null;
   background: string
   extrClass?: string
+  type?: "button" | "submit" | "reset" | undefined
+  disabled?: boolean
 }
 
 const Button: React.FC<IButton> = ({
@@ -18,7 +20,9 @@ const Button: React.FC<IButton> = ({
   handleOnMouseLeave,
   mouseResult,
   background,
-  extrClass
+  extrClass,
+  type,
+  disabled
 }) => {
   const buttonVariants = {
     hover: {
@@ -36,10 +40,12 @@ const Button: React.FC<IButton> = ({
       whileHover="hover"
       onMouseEnter={handleOnMouseEnter}
       onMouseLeave={handleOnMouseLeave}
-      className={`${background} bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+      className={`${background} p-2 rounded-lg shadow-lg text-white text-xs ${
         mouseResult === text ? "hover:bg-pink-500" : ""
       } ${extrClass ? extrClass : ''}`}
       onClick={onClick}
+      type={type}
+      disabled={disabled}
     >
       {text}
     </motion.button>

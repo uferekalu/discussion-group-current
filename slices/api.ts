@@ -1,9 +1,8 @@
-import { Reusables } from "@/utils/Reusables";
+import { getCookie } from "@/utils/utility";
 
 export const url = "http://localhost:5000/api";
 
 export const setHeaders = () => {
-  const { getCookie } = Reusables();
   if (getCookie("token") !== null) {
     const headers = {
       headers: {

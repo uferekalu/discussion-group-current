@@ -1,8 +1,13 @@
+import { useAppSelector } from "@/store/hook";
 import React, { useState } from "react";
 
 const Reusables = () => {
   const [mouseResult, setMouseResult] = useState<number | string | null>(null);
   const [toggleMenu, setToggleMenu] = useState<boolean>(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] =
+    useState<boolean>(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  
 
   const handleToggleMenu = () => {
     setToggleMenu((prevState) => !prevState);
@@ -16,25 +21,35 @@ const Reusables = () => {
   const handleOnMouseLeave = () => {
     setMouseResult(null);
   };
-  
-  function getCookie(name: string) {
-    const cookies = document.cookie.split(",").map((cookie) => cookie.trim());
-    const desiredCookie = cookies.find((cookie) =>
-      cookie.startsWith(name + "=")
-    );
-    if (desiredCookie) {
-      return desiredCookie.substring(name.length + 1);
-    }
-    return null;
-  }
+
+  const handleOpenRegisterModal = () => {
+    setIsRegisterModalOpen(true);
+  };
+
+  const handleCloseRegisterModal = () => {
+    setIsRegisterModalOpen(false);
+  };
+
+  const handleCloseLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const handleOpenLoginModal = () => {
+    setIsLoginModalOpen(true);
+  };
 
   return {
-    getCookie,
     mouseResult,
     toggleMenu,
     handleToggleMenu,
     handleOnMouseEnter,
     handleOnMouseLeave,
+    handleOpenRegisterModal,
+    handleOpenLoginModal,
+    isRegisterModalOpen,
+    handleCloseRegisterModal,
+    handleCloseLoginModal,
+    isLoginModalOpen,
   };
 };
 

@@ -1,72 +1,119 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AppConfig } from "@/utils/AppConfig";
-import { Button } from "@/components/button/Button";
 import { Meta } from "@/components/layout/Meta";
 import { Section } from "@/components/layout/Section";
-import { Logo } from "@/components/logo/Logo";
-import Navbar from "@/components/navigation/Navbar";
 import { motion } from "framer-motion";
-import UnAuthenticated from "@/components/unAuthenticated/UnAuthenticated";
-import NavMobile from "@/components/navigation/NavMobile";
 import { Reusables } from "@/utils/Reusables";
-import ReusableTitle from "@/components/reusableTitle/ReusableTitle";
+import { Footer } from "@/components/footer";
+import RegisterModal from "@/components/auth/register/RegisterModal";
+import LoginModal from "@/components/auth/login/Login";
+import { useRouter } from "next/router";
+import { useAppSelector } from "@/store/hook";
+import { getCookie } from "@/utils/utility";
+import Navigation from "@/components/navigation/Navigation";
 
 export default function Home() {
+  const auth = useAppSelector((state) => state.auth);
+  const token = useMemo(() => getCookie("token"), []);
+  const router = useRouter();
+
+  console.log("token", token)
   const {
-    mouseResult,
-    toggleMenu,
-    handleToggleMenu,
-    handleOnMouseEnter,
-    handleOnMouseLeave,
+    handleOpenLoginModal,
+    isRegisterModalOpen,
+    handleOpenRegisterModal,
+    handleCloseRegisterModal,
+    isLoginModalOpen,
+    handleCloseLoginModal,
   } = Reusables();
 
+  useEffect(() => {
+    if (token) {
+      router.push("/forum");
+    }
+  }, [token, router]);
   return (
-    <div className="flex flex-coltext-gray-600 antialiased">
+    <div className="flex flex-col text-gray-600 antialiased">
       <Meta title={AppConfig.title} description={AppConfig.description} />
-      <Navbar logo={<Logo size={44} />} greetings="Welcome Lushak">
-        <div className="sm:flex hidden justify-between space-x-3">
-          <UnAuthenticated
-            handleOnMouseEnter={handleOnMouseEnter}
-            handleOnMouseLeave={handleOnMouseLeave}
-            mouseResult={mouseResult}
-            onClick={() => {}}
-          />
-        </div>
-        <div className="flex sm:hidden">
-          <NavMobile
-            handleToggleMenu={handleToggleMenu}
-            toggleMenu={toggleMenu}
-            handleOnMouseEnter={handleOnMouseEnter}
-            handleOnMouseLeave={handleOnMouseLeave}
-            mouseResult={mouseResult}
-          />
-        </div>
-      </Navbar>
+      <Navigation
+        handleRegister={handleOpenRegisterModal}
+        handleLogin={handleOpenLoginModal}
+      />
       <Section
         width="w-full"
         height="min-h-screen"
-        otherClassName="mt-10 p-2"
+        otherClassName="flex flex-col mt-10 p-4"
         background='url("/background.jpg")'
       >
-        <div className="flex justify-center items-center mt-20 p-2 rounded-lg shadow-lg text-black">
-          <motion.h1
-            initial={{
-              opacity: 0,
-              y: -20,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 1,
-              delay: 0.5,
-            }}
-          >
-            The Discussion Group App
-          </motion.h1>
-        </div>
+        <motion.h1
+          initial={{
+            opacity: 0,
+            y: -20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 1,
+            delay: 0.5,
+          }}
+          style={{
+            backgroundImage: 'url("background3.jpg")',
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backdropFilter: "saturate(180% blur(20px)",
+          }}
+          className="text-white text-sm font-bold shadow-lg w-52 text-center mx-auto p-2 rounded-lg sm:mt-20 mt-10"
+        >
+          The Discussion Group App
+        </motion.h1>
+        <motion.p
+          initial={{
+            opacity: 0,
+            y: -20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 1,
+            delay: 0.5,
+          }}
+          style={{
+            backgroundImage: 'url("background3.jpg")',
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            width: "100%",
+            backdropFilter: "saturate(180% blur(20px)",
+          }}
+          className="text-white text-sm text-justify shadow-lg w-full mx-auto p-4 rounded-lg mt-4"
+        >
+          {`Lorem Ipsum is simply dummy text of the printing and typesetting
+          industry. Lorem Ipsum has been the industry's standard dummy text ever
+          since the 1500s, when an unknown printer took a galley of type and
+          scrambled it to make a type specimen book. It has survived not only
+          five centuries, but also the leap into electronic typesetting,
+          remaining essentially unchanged. It was popularised in the 1960s with
+          the release of Letraset sheets containing Lorem Ipsum passages, and
+          more recently with desktop publishing software like Aldus PageMaker
+          including versions of Lorem Ipsum.`}
+        </motion.p>
       </Section>
+      <Footer />
+      <RegisterModal
+        isOpen={isRegisterModalOpen}
+        onClose={handleCloseRegisterModal}
+        handleOpenLoginModal={handleOpenLoginModal}
+      />
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={handleCloseLoginModal}
+        handleOpenRegisterModal={handleOpenRegisterModal}
+      />
     </div>
   );
 }
