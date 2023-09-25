@@ -7,7 +7,7 @@ interface IPulseAnimation {
 
 const PulseAnimations: React.FC<IPulseAnimation> = ({ num, display }) => {
   return (
-    <div className={`${display ? display : undefined}`}>
+    <div className={`mt-4 ${display ? display : undefined}`}>
       {new Array(num).fill(null).map((pulse, idx) => (
         <div
           className="border border-blue-300 bg-white shadow justify-center items-center rounded-md p-4 max-w-sm w-full mx-auto"

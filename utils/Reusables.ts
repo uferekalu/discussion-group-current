@@ -7,7 +7,7 @@ const Reusables = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] =
     useState<boolean>(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
-  
+  const [hoverButton, setHoverButton] = useState<string | number | null>(null);
 
   const handleToggleMenu = () => {
     setToggleMenu((prevState) => !prevState);
@@ -38,6 +38,16 @@ const Reusables = () => {
     setIsLoginModalOpen(true);
   };
 
+  const buttonVariants = {
+    hover: {
+      scale: 1.1,
+      transition: {
+        duration: 0.3,
+        yoyo: Infinity,
+      },
+    },
+  };
+
   return {
     mouseResult,
     toggleMenu,
@@ -50,6 +60,10 @@ const Reusables = () => {
     handleCloseRegisterModal,
     handleCloseLoginModal,
     isLoginModalOpen,
+    buttonVariants,
+    hoverButton,
+    setHoverButton,
+    setToggleMenu
   };
 };
 

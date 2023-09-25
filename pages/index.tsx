@@ -17,7 +17,8 @@ export default function Home() {
   const token = useMemo(() => getCookie("token"), []);
   const router = useRouter();
 
-  console.log("token", token)
+  const handleIsLoggedOut = () => {};
+
   const {
     handleOpenLoginModal,
     isRegisterModalOpen,
@@ -38,6 +39,23 @@ export default function Home() {
       <Navigation
         handleRegister={handleOpenRegisterModal}
         handleLogin={handleOpenLoginModal}
+        handleIsLoggedOut={handleIsLoggedOut}
+        openModal={function (): void | undefined {
+          throw new Error("Function not implemented.");
+        }}
+        selectGroup={function (id: number, name: string): void {
+          throw new Error("Function not implemented.");
+        }}
+        handleGroupsUserBelongsTo={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        handleJoinAGroup={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        isJoinAGroup={false}
+        isBelongTo={false}
+        groupStatus={""}
+        groupsToJoin={undefined}
       />
       <Section
         width="w-full"

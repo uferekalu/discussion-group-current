@@ -119,6 +119,7 @@ export interface AllGroupsObject {
   creator_id: number;
   creatorName: string;
   username: string;
+  profile_picture: string;
   createdAt: string;
   allUsers: string[];
   allDiscussions: discussionObj[];
@@ -159,4 +160,9 @@ export interface DiscussionObject {
   content: string;
   author_id: number | null;
   Comments: DiscussionCommentObject[];
+}
+
+export interface RenderItemProps {
+  startIndex: number;
+  endIndex: number;
 }

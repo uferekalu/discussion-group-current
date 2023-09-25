@@ -1,17 +1,34 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { AllGroupsObject, DecodedJWT } from "@/utils/interface";
+import {
+  AllGroupsObject,
+  DecodedJWT,
+  DiscussionObject,
+} from "@/utils/interface";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { Select } from "../select/Select";
+import { Reusables } from "@/utils/Reusables";
 
 interface IGroupCard {
   allGroups: AllGroupsObject[];
   authenticatedUser: DecodedJWT | undefined;
+  startIndex: number;
+  endIndex: number;
+  discussions: DiscussionObject[];
 }
 
-const GroupCard: React.FC<IGroupCard> = ({ allGroups, authenticatedUser }) => {
+const GroupCard: React.FC<IGroupCard> = ({
+  allGroups,
+  authenticatedUser,
+  startIndex,
+  endIndex,
+  discussions,
+}) => {
   const [groupId, setGroupId] = useState<number | null>(null);
   const router = useRouter();
+
+  const { buttonVariants, hoverButton, setHoverButton } = Reusables();
 
   const handleGroupId = (id: number) => {
     setGroupId((prevState) => {
@@ -22,7 +39,7 @@ const GroupCard: React.FC<IGroupCard> = ({ allGroups, authenticatedUser }) => {
   return (
     <div
       style={{
-        backgroundImage: 'url("background2.jpg")',
+        backgroundImage: 'url("/background2.jpg")',
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
@@ -31,7 +48,12 @@ const GroupCard: React.FC<IGroupCard> = ({ allGroups, authenticatedUser }) => {
       }}
       className="p-3 rounded-lg shadow-lg"
     >
-      {allGroups.map((group) => {
+      {allGroups.slice(startIndex, endIndex).map((group) => {
+        const sanitizedImage =
+          group.profile_picture &&
+          group.profile_picture !== null &&
+          group.profile_picture.replace(/\\/g, "/");
+        const baseUrl = "http://localhost:5000";
         const isMember =
           authenticatedUser &&
           group.allUsers.includes(authenticatedUser?.username);
@@ -70,8 +92,9 @@ const GroupCard: React.FC<IGroupCard> = ({ allGroups, authenticatedUser }) => {
                 </span>
                 <Image
                   className="rounded-full shadow-lg"
-                  // src={groupId === id ? "/images/down.png" : "/images/up.png"}
-                  src={"/images/up.png"}
+                  src={
+                    groupId === group.id ? "/images/down.png" : "/images/up.png"
+                  }
                   height="15"
                   width="15"
                   alt="up"
@@ -109,7 +132,11 @@ const GroupCard: React.FC<IGroupCard> = ({ allGroups, authenticatedUser }) => {
               <div className="flex flex-col items-center pb-2">
                 <Image
                   className="mb-3 rounded-full shadow-lg"
-                  src="/images/pic.jpg"
+                  src={
+                    group.profile_picture === null
+                      ? "/images/profile_avatar.jpg"
+                      : `${baseUrl}/${sanitizedImage}`
+                  }
                   height="30"
                   width="30"
                   alt="pic"
@@ -140,6 +167,69 @@ const GroupCard: React.FC<IGroupCard> = ({ allGroups, authenticatedUser }) => {
                     0,
                     100
                   )}...`}</p>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  {isMember ? (
+                    <>
+                      <Select text="Group Members">
+                        {group.allUsers.map((mem: string, idx: number) => (
+                          <option key={idx} value={mem}>
+                            {mem}
+                          </option>
+                        ))}
+                      </Select>
+                      {discussions && discussions.length > 0 && (
+                        <Select text="Discussions">
+                          {discussions.map(
+                            (discussion: DiscussionObject, idx: number) => (
+                              <option key={idx} value={discussion.title}>
+                                {discussion.title}
+                              </option>
+                            )
+                          )}
+                        </Select>
+                      )}
+                      <motion.button
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        onClick={() => {}}
+                        onMouseEnter={() => setHoverButton("Start Discussion")}
+                        onMouseLeave={() => setHoverButton(null)}
+                        className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+                          hoverButton === "Start Discussion"
+                            ? "hover:bg-pink-500"
+                            : ""
+                        }`}
+                      >
+                        {"Start Discussion"}
+                      </motion.button>
+                    </>
+                  ) : (
+                    <motion.button
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      // onClick={() => {
+                      //   openModal();
+                      //   selectGroup(id, groupName);
+                      // }}
+                      onMouseEnter={() => setHoverButton("Join Group")}
+                      onMouseLeave={() => setHoverButton(null)}
+                      className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+                        hoverButton === "Join Group" ? "hover:bg-pink-500" : ""
+                      }`}
+                    >
+                      {"Join Group"}
+                    </motion.button>
+                    // <Button
+                    //   id="joinGroup"
+                    //   text="Join Group"
+                    // onClick={() => {
+                    //   openModal();
+                    //   selectGroup(id, groupName);
+                    // }}
+                    //   style="bg-gray-950 border mt-2 rounded-lg p-1 text-white text-sm font-medium"
+                    // />
+                  )}
                 </div>
               </div>
             </motion.div>

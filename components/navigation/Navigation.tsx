@@ -1,32 +1,60 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Logo } from "../logo/Logo";
-import { Button } from "../button/Button";
 import { Reusables } from "@/utils/Reusables";
 import { Section } from "../layout/Section";
 import { getCookie, setCookie } from "@/utils/utility";
-import { useRouter } from "next/router";
+import { DecodedJWT } from "@/utils/interface";
+import NavButton from "./NavButton";
 import { useAppDispatch } from "@/store/hook";
+import { allGroups } from "@/slices/groupSlice";
+import PulseAnimations from "../animations/PulseAnimations";
+import GroupsUserCanJoinAndBelongsTo from "../group/GroupsUserCanJoinAndBelongsTo";
 
 interface INavigation {
   handleRegister: () => void;
   handleLogin: () => void;
+  authenticatedUser?: DecodedJWT;
+  handleIsLoggedOut: () => void;
+  groupStatus: string;
+  groupsToJoin: string[] | unknown;
+  belongsTo?: string[] | unknown;
+  openModal: () => void | undefined;
+  selectGroup: (id: number, name: string) => void;
+  handleGroupsUserBelongsTo: () => void;
+  handleJoinAGroup: () => void;
+  isJoinAGroup: boolean;
+  isBelongTo: boolean;
 }
 
-const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
+const Navigation: React.FC<INavigation> = ({
+  handleRegister,
+  handleLogin,
+  authenticatedUser,
+  handleIsLoggedOut,
+  groupStatus,
+  groupsToJoin,
+  belongsTo,
+  openModal,
+  selectGroup,
+  handleGroupsUserBelongsTo,
+  handleJoinAGroup,
+  isJoinAGroup,
+  isBelongTo,
+}) => {
   const [scrolling, setScrolling] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const router = useRouter();
-  const dispatch = useAppDispatch();
   const token = useMemo(() => getCookie("token"), []);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
   const controls = useAnimation();
-
   const {
     mouseResult,
     toggleMenu,
     handleToggleMenu,
     handleOnMouseEnter,
     handleOnMouseLeave,
+    setToggleMenu,
   } = Reusables();
 
   const handleScroll = () => {
@@ -36,6 +64,22 @@ const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
       setScrolling(false);
     }
   };
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setToggleMenu(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [setToggleMenu]);
+
+  useEffect(() => {
+    dispatch(allGroups());
+  }, [dispatch]);
 
   useEffect(() => {
     if (token) {
@@ -54,7 +98,7 @@ const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
 
   const handleLogout = () => {
     setCookie("token", "", { expires: "Thu, 01, Jan 1970 00:00:00 GMT" });
-    // router.push("/");
+    handleIsLoggedOut();
   };
 
   return (
@@ -65,7 +109,7 @@ const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
         scrolling ? "py-2" : "py-4"
       }`}
       style={{
-        backgroundImage: 'url("background2.jpg")',
+        backgroundImage: 'url("/background2.jpg")',
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
@@ -78,13 +122,24 @@ const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
           <div>
             <Logo size={44} />
           </div>
-          <div className="text-white text-sm bg-black rounded-lg p-2 shadow-lg">
-            Welcome Lushak
-          </div>
-          <div className="sm:flex hidden space-x-3">
+          {!isLoggedIn && (
+            <>
+              <div></div>
+              <div></div>
+              <div></div>
+            </>
+          )}
+          {isLoggedIn && authenticatedUser && (
+            <div className="text-white text-sm bg-black rounded-lg p-2 shadow-lg sm:ml-auto">
+              Welcome{" "}
+              {authenticatedUser?.username.slice(0, 1).toUpperCase() +
+                authenticatedUser?.username.slice(1)}
+            </div>
+          )}
+          <div className="sm:flex hidden space-x-3 ml-auto">
             {!isLoggedIn && (
-              <>
-                <Button
+              <div className="flex space-x-3">
+                <NavButton
                   text="Sign Up"
                   onClick={() => {
                     handleRegister();
@@ -95,7 +150,7 @@ const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
                   extrClass="w-24"
                   background="bg-blue-500"
                 />
-                <Button
+                <NavButton
                   text="Login"
                   onClick={() => {
                     handleLogin();
@@ -106,101 +161,189 @@ const Navigation: React.FC<INavigation> = ({ handleRegister, handleLogin }) => {
                   extrClass="w-24"
                   background="bg-teal-500"
                 />
-              </>
+              </div>
             )}
             {isLoggedIn && (
-              <Button
-                text="Logout"
-                onClick={() => handleLogout()}
-                handleOnMouseEnter={() => handleOnMouseEnter("Logout")}
-                handleOnMouseLeave={handleOnMouseLeave}
-                mouseResult={mouseResult}
-                extrClass="w-24"
-                background="bg-blue-500"
-              />
-            )}
-          </div>
-          <div className="sm:hidden flex -mr-12">
-            <i
-              onClick={handleToggleMenu}
-              className={
-                toggleMenu
-                  ? "bi bi-x-circle-fill font-bold text-white text-2xl ease-in duration-300"
-                  : "bi bi-list text-2xl text-white font-bold ease-in duration-300"
-              }
-            ></i>
-          </div>
-          <div className="sm:hidden flex space-x-3">
-            {toggleMenu && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-              >
+              <div className="flex space-x-3">
                 <div
-                  id="togglebar"
-                  className="absolute z-50 top-20 -mt-1 sm:w-1/2 w-5/6 sm:right-6 right-0 rounded-lg shadow-lg"
+                  className="flex mr-1 mt-1 cursor-pointer"
+                  onClick={() => {}}
                 >
-                  <Section
-                    width="w-full"
-                    height="h-24"
-                    otherClassName={`p-3 flex flex-col ${
-                      scrolling ? "-mt-4" : undefined
-                    }`}
-                    background='url("/background4.jpeg")'
-                  >
-                    <div className="flex space-x-3">
-                      {!isLoggedIn && (
-                        <>
-                          <Button
-                            text="Sign Up"
-                            onClick={() => {
-                              handleRegister();
-                              handleToggleMenu();
-                            }}
-                            handleOnMouseEnter={() =>
-                              handleOnMouseEnter("Sign Up")
-                            }
-                            handleOnMouseLeave={handleOnMouseLeave}
-                            mouseResult={mouseResult}
-                            extrClass="w-24"
-                            background="bg-blue-500"
-                          />
-                          <Button
-                            text="Login"
-                            onClick={() => {
-                              handleLogin();
-                              handleToggleMenu();
-                            }}
-                            handleOnMouseEnter={() =>
-                              handleOnMouseEnter("Login")
-                            }
-                            handleOnMouseLeave={handleOnMouseLeave}
-                            mouseResult={mouseResult}
-                            extrClass="w-24"
-                            background="bg-teal-500"
-                          />
-                        </>
-                      )}
-                      {isLoggedIn && (
-                        <Button
-                          text="Logout"
-                          onClick={() => handleLogout()}
-                          handleOnMouseEnter={() =>
-                            handleOnMouseEnter("Logout")
-                          }
-                          handleOnMouseLeave={handleOnMouseLeave}
-                          mouseResult={mouseResult}
-                          extrClass="w-24"
-                          background="bg-blue-500"
-                        />
-                      )}
-                    </div>
-                  </Section>
+                  <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
+                  <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
+                    10
+                  </span>
                 </div>
-              </motion.div>
+                <NavButton
+                  text="Send an Invite"
+                  onClick={() => {}}
+                  handleOnMouseEnter={() =>
+                    handleOnMouseEnter("Send an Invite")
+                  }
+                  handleOnMouseLeave={handleOnMouseLeave}
+                  mouseResult={mouseResult}
+                  extrClass=""
+                  background="bg-teal-500"
+                />
+                <NavButton
+                  text="Create a Group"
+                  onClick={() => {}}
+                  handleOnMouseEnter={() =>
+                    handleOnMouseEnter("Create a Group")
+                  }
+                  handleOnMouseLeave={handleOnMouseLeave}
+                  mouseResult={mouseResult}
+                  extrClass=""
+                  background="bg-indigo-500"
+                />
+                <NavButton
+                  text="Logout"
+                  onClick={() => handleLogout()}
+                  handleOnMouseEnter={() => handleOnMouseEnter("Logout")}
+                  handleOnMouseLeave={handleOnMouseLeave}
+                  mouseResult={mouseResult}
+                  extrClass=""
+                  background="bg-blue-500"
+                />
+              </div>
             )}
+          </div>
+          <div ref={menuRef}>
+            <div className="sm:hidden flex space-x-2">
+              <div onClick={() => {}} className="flex mr-1 mt-1">
+                <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
+                <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
+                  10
+                </span>
+              </div>
+              <i
+                onClick={handleToggleMenu}
+                className={
+                  toggleMenu
+                    ? "bi bi-x-circle-fill font-bold text-white text-2xl ease-in duration-300"
+                    : "bi bi-list text-2xl text-white font-bold ease-in duration-300"
+                }
+              ></i>
+            </div>
+            <div className="sm:hidden flex space-x-3">
+              {toggleMenu && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div
+                    id="togglebar"
+                    className="absolute z-50 top-20 -mt-1 sm:w-1/2 w-5/6 sm:right-6 right-0 rounded-lg shadow-lg"
+                  >
+                    <Section
+                      width="w-full"
+                      height="h-24"
+                      otherClassName={`p-3 flex flex-col ${
+                        isLoggedIn && "h-96 overflow-y-auto"
+                      } ${scrolling ? "-mt-4" : undefined}`}
+                      background='url("/background4.jpeg")'
+                    >
+                      <div className="flex space-x-3">
+                        {!isLoggedIn && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <NavButton
+                              text="Sign Up"
+                              onClick={() => {
+                                handleRegister();
+                                handleToggleMenu();
+                              }}
+                              handleOnMouseEnter={() =>
+                                handleOnMouseEnter("Sign Up")
+                              }
+                              handleOnMouseLeave={handleOnMouseLeave}
+                              mouseResult={mouseResult}
+                              extrClass="w-24"
+                              background="bg-blue-500"
+                            />
+                            <NavButton
+                              text="Login"
+                              onClick={() => {
+                                handleLogin();
+                                handleToggleMenu();
+                              }}
+                              handleOnMouseEnter={() =>
+                                handleOnMouseEnter("Login")
+                              }
+                              handleOnMouseLeave={handleOnMouseLeave}
+                              mouseResult={mouseResult}
+                              extrClass="w-24"
+                              background="bg-teal-500"
+                            />
+                          </div>
+                        )}
+                        {isLoggedIn && (
+                          <div className="flex flex-col space-y-3">
+                            <div className="grid grid-cols-3 gap-2">
+                              <NavButton
+                                text="Send an Invite"
+                                onClick={() => {}}
+                                handleOnMouseEnter={() =>
+                                  handleOnMouseEnter("Send an Invite")
+                                }
+                                handleOnMouseLeave={handleOnMouseLeave}
+                                mouseResult={mouseResult}
+                                extrClass=""
+                                background="bg-teal-500"
+                              />
+                              <NavButton
+                                text="Create a Group"
+                                onClick={() => {}}
+                                handleOnMouseEnter={() =>
+                                  handleOnMouseEnter("Create a Group")
+                                }
+                                handleOnMouseLeave={handleOnMouseLeave}
+                                mouseResult={mouseResult}
+                                extrClass=""
+                                background="bg-indigo-500"
+                              />
+                              <NavButton
+                                text="Logout"
+                                onClick={() => handleLogout()}
+                                handleOnMouseEnter={() =>
+                                  handleOnMouseEnter("Logout")
+                                }
+                                handleOnMouseLeave={handleOnMouseLeave}
+                                mouseResult={mouseResult}
+                                extrClass=""
+                                background="bg-blue-500"
+                              />
+                            </div>
+                            <hr className="text-white" />
+                            {groupStatus === "pending" && (
+                              <PulseAnimations
+                                num={12}
+                                display="grid sm:grid-cols-3 gap-4"
+                              />
+                            )}
+                            {groupStatus === "success" && (
+                              <GroupsUserCanJoinAndBelongsTo
+                                groupsToJoin={groupsToJoin}
+                                openModal={openModal}
+                                selectGroup={selectGroup}
+                                handleGroupsUserBelongsTo={
+                                  handleGroupsUserBelongsTo
+                                }
+                                handleJoinAGroup={handleJoinAGroup}
+                                belongsTo={belongsTo}
+                                isJoinAGroup={isJoinAGroup}
+                                isBelongTo={isBelongTo}
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </Section>
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       </div>
