@@ -10,7 +10,16 @@ interface IGroupDetailProps {
 const GroupDetailComp: React.FC<IGroupDetailProps> = ({ group }) => {
   const router = useRouter();
   return (
-    <div className="w-full mb-3 p-4 mt-3 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+    <div
+      style={{
+        backgroundImage: 'url("/background3.jpg")',
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backdropFilter: "saturate(180% blur(20px)",
+      }}
+      className="w-full mb-3 p-4 mt-3 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
+    >
       <div className="flex max-w-xs justify-center items-center m-auto text-xs text-black font-bold p-2 bg-gray-100 rounded-lg">
         {group.name}
       </div>

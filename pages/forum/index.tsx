@@ -21,6 +21,8 @@ import ReusableModal from "@/components/modal/ReusableModal";
 import JoinGroupContent from "@/components/group/JoinGroupContent";
 import HasJoinedNotification from "@/components/group/HasJoinedNotification";
 import SideComp from "@/components/sideComp/SideComp";
+import CreateGroup from "@/components/group/CreateGroup";
+import CreateGroupNotification from "@/components/group/CreateGroupNotification";
 
 const Forum: NextPage = () => {
   const [authenticatedUser, setAuthenticatedUser] = useState<DecodedJWT>();
@@ -44,13 +46,22 @@ const Forum: NextPage = () => {
   );
   const [confirmJoinGroup, setConfirmJoinGroup] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
-  const [isMember, setIsMember] = useState<boolean>(false)
+  const [isMember, setIsMember] = useState<boolean>(false);
 
   const groups = useAppSelector((state: RootState) => state.groups);
   const auth = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { handleOpenRegisterModal, handleOpenLoginModal } = Reusables();
+  const {
+    handleOpenRegisterModal,
+    handleOpenLoginModal,
+    createAGroup,
+    setCreateAGroup,
+    handleCreateGroupNotification,
+    createGroupNotification,
+    setCreateGroupNotification,
+    handleCreateAGroup
+  } = Reusables();
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -202,6 +213,7 @@ const Forum: NextPage = () => {
         isJoinAGroup={isJoinAGroup}
         isBelongTo={isBelongsTo}
         groupStatus={groups.groupStatus}
+        handleCreateAGroup={handleCreateAGroup}
       />
       <Section
         width="w-full"
@@ -300,6 +312,26 @@ const Forum: NextPage = () => {
         <HasJoinedNotification
           closeHasJoined={closeHasJoined}
           text={groups.joinAGroupResult}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={createAGroup}
+        onClose={() => setCreateAGroup(false)}
+        deSelectGroup={() => {}}
+      >
+        <CreateGroup
+          closeCreateGroup={() => setCreateAGroup(false)}
+          handleCreateGroupNotification={handleCreateGroupNotification}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={createGroupNotification}
+        onClose={() => setCreateGroupNotification(false)}
+        deSelectGroup={() => {}}
+      >
+        <CreateGroupNotification
+          closeHasJoined={() => setCreateGroupNotification(false)}
+          text={`Group created successfully`}
         />
       </ReusableModal>
     </div>

@@ -46,6 +46,7 @@ const Pagination: React.FC<IPagination> = ({
     for (let page = startPage; page <= endPage; page++) {
       buttons.push(
         <motion.button
+        key={page}
           variants={buttonVariants}
           whileHover="hover"
           onMouseEnter={() => setHoverButton(page)}

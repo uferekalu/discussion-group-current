@@ -1,11 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../slices/authSlice";
 import groupReducer from "../slices/groupSlice";
+import userReducer from "../slices/userSlice";
+import uploadReducer from '../slices/uploadSlice'
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    groups: groupReducer
+    groups: groupReducer,
+    user: userReducer,
+    upload: uploadReducer
   },
 });
 

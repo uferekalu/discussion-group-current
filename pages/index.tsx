@@ -56,6 +56,9 @@ export default function Home() {
         isBelongTo={false}
         groupStatus={""}
         groupsToJoin={undefined}
+        handleCreateAGroup={function (): void {
+          throw new Error("Function not implemented.");
+        }}
       />
       <Section
         width="w-full"

@@ -195,7 +195,7 @@ const GroupCard: React.FC<IGroupCard> = ({
                         onClick={() => {}}
                         onMouseEnter={() => setHoverButton("Start Discussion")}
                         onMouseLeave={() => setHoverButton(null)}
-                        className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+                        className={`bg-blue-500 p-2 rounded-lg shadow-lg text-white text-xs ${
                           hoverButton === "Start Discussion"
                             ? "hover:bg-pink-500"
                             : ""
@@ -208,27 +208,14 @@ const GroupCard: React.FC<IGroupCard> = ({
                     <motion.button
                       variants={buttonVariants}
                       whileHover="hover"
-                      // onClick={() => {
-                      //   openModal();
-                      //   selectGroup(id, groupName);
-                      // }}
                       onMouseEnter={() => setHoverButton("Join Group")}
                       onMouseLeave={() => setHoverButton(null)}
-                      className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+                      className={`bg-blue-500 p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
                         hoverButton === "Join Group" ? "hover:bg-pink-500" : ""
                       }`}
                     >
                       {"Join Group"}
                     </motion.button>
-                    // <Button
-                    //   id="joinGroup"
-                    //   text="Join Group"
-                    // onClick={() => {
-                    //   openModal();
-                    //   selectGroup(id, groupName);
-                    // }}
-                    //   style="bg-gray-950 border mt-2 rounded-lg p-1 text-white text-sm font-medium"
-                    // />
                   )}
                 </div>
               </div>

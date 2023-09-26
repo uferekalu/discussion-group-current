@@ -166,3 +166,38 @@ export interface RenderItemProps {
   startIndex: number;
   endIndex: number;
 }
+
+export interface UserObject {
+  name: string;
+  email: string;
+  username: string;
+  profile_picture: string;
+  country: string;
+  sex: string;
+  hobbies: string;
+}
+
+export interface User {
+  userDetails: UserObject;
+  userStatus: string;
+  userError: string;
+  userUpdateStatus: string;
+  userUpdateError: string;
+  userUpdateMessage: string;
+}
+
+export interface UploadImage {
+  uploadPath: string;
+  uploadStatus: string;
+  uploadError: string;
+}
+
+export interface UserUpdateData {
+  name: string;
+  email: string;
+  username: string;
+  country: string;
+  sex: string;
+  hobbies: string;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}

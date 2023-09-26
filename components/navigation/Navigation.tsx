@@ -23,6 +23,7 @@ interface INavigation {
   selectGroup: (id: number, name: string) => void;
   handleGroupsUserBelongsTo: () => void;
   handleJoinAGroup: () => void;
+  handleCreateAGroup: () => void;
   isJoinAGroup: boolean;
   isBelongTo: boolean;
 }
@@ -39,6 +40,7 @@ const Navigation: React.FC<INavigation> = ({
   selectGroup,
   handleGroupsUserBelongsTo,
   handleJoinAGroup,
+  handleCreateAGroup,
   isJoinAGroup,
   isBelongTo,
 }) => {
@@ -55,6 +57,8 @@ const Navigation: React.FC<INavigation> = ({
     handleOnMouseEnter,
     handleOnMouseLeave,
     setToggleMenu,
+    createAGroup,
+    setCreateAGroup,
   } = Reusables();
 
   const handleScroll = () => {
@@ -187,7 +191,7 @@ const Navigation: React.FC<INavigation> = ({
                 />
                 <NavButton
                   text="Create a Group"
-                  onClick={() => {}}
+                  onClick={() => handleCreateAGroup()}
                   handleOnMouseEnter={() =>
                     handleOnMouseEnter("Create a Group")
                   }
@@ -210,12 +214,14 @@ const Navigation: React.FC<INavigation> = ({
           </div>
           <div ref={menuRef}>
             <div className="sm:hidden flex space-x-2">
-              <div onClick={() => {}} className="flex mr-1 mt-1">
-                <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
-                <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
-                  10
-                </span>
-              </div>
+              {isLoggedIn && (
+                <div onClick={() => {}} className="flex mr-1 mt-1">
+                  <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
+                  <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
+                    10
+                  </span>
+                </div>
+              )}
               <i
                 onClick={handleToggleMenu}
                 className={
@@ -294,7 +300,10 @@ const Navigation: React.FC<INavigation> = ({
                               />
                               <NavButton
                                 text="Create a Group"
-                                onClick={() => {}}
+                                onClick={() => {
+                                  handleCreateAGroup();
+                                  handleToggleMenu();
+                                }}
                                 handleOnMouseEnter={() =>
                                   handleOnMouseEnter("Create a Group")
                                 }

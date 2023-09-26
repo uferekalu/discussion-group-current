@@ -8,7 +8,17 @@ const Reusables = () => {
     useState<boolean>(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [hoverButton, setHoverButton] = useState<string | number | null>(null);
+  const [createAGroup, setCreateAGroup] = useState<boolean>(false);
+  const [createGroupNotification, setCreateGroupNotification] =
+    useState<boolean>(false);
 
+  const handleCreateGroupNotification = () => {
+    setCreateGroupNotification(true);
+  };
+
+  const handleCreateAGroup = () => {
+    setCreateAGroup(true);
+  };
   const handleToggleMenu = () => {
     setToggleMenu((prevState) => !prevState);
     // setShowNotification(false)
@@ -63,7 +73,13 @@ const Reusables = () => {
     buttonVariants,
     hoverButton,
     setHoverButton,
-    setToggleMenu
+    setToggleMenu,
+    createAGroup,
+    setCreateAGroup,
+    handleCreateAGroup,
+    createGroupNotification,
+    setCreateGroupNotification,
+    handleCreateGroupNotification,
   };
 };
 
