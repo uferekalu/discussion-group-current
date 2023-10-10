@@ -3,13 +3,19 @@ import authReducer from "../slices/authSlice";
 import groupReducer from "../slices/groupSlice";
 import userReducer from "../slices/userSlice";
 import uploadReducer from '../slices/uploadSlice'
+import inviteReducer from '../slices/sendInviteSlice'
+import discussionReducer from '../slices/createDiscussion'
+import deleteNotificationReducer from '../slices/deleteNotificationSlice'
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
     groups: groupReducer,
     user: userReducer,
-    upload: uploadReducer
+    upload: uploadReducer,
+    invite: inviteReducer,
+    discussion: discussionReducer,
+    deleteNotification: deleteNotificationReducer
   },
 });
 

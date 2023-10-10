@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Reusables } from "@/utils/Reusables";
+import { Tooltip, Typography } from "@material-tailwind/react";
 
 interface IGroupsToJoin {
   groupsToJoin: string[] | unknown;
@@ -66,43 +67,90 @@ const GroupsUserCanJoinAndBelongsTo: React.FC<IGroupsToJoin> = ({
             Groups You Belong To
           </motion.h2>
         </div>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-cols-2 gap-4 mt-3">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-cols-2 gap-4 sm:mt-5 mt-3">
           {isJoinAGroup &&
             Array.isArray(groupsToJoin) &&
             groupsToJoin.map((group) => (
-              <motion.button
-                key={group.id}
-                variants={buttonVariants}
-                whileHover="hover"
-                onMouseEnter={() => setHoverButton(group.id)}
-                onMouseLeave={() => setHoverButton(null)}
-                onClick={() => {
-                  openModal();
-                  selectGroup(group.id, group.name);
+              <Tooltip
+                initial={{
+                  opacity: 0,
+                  y: -20,
                 }}
-                className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
-                  hoverButton === group.id ? "hover:bg-pink-500" : ""
-                }`}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  mount: { scale: 1, y: 1 },
+                }}
+                transition={{
+                  duration: 1,
+                  delay: 0.1,
+                }}
+                content={
+                  <div className="p-2">
+                    <Typography color="white" className="text-xs">
+                      {`Click to join ${group.name} group`}
+                    </Typography>
+                  </div>
+                }
+                key={group.id}
               >
-                {group.name}
-              </motion.button>
+                <motion.button
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  onMouseEnter={() => setHoverButton(group.id)}
+                  onMouseLeave={() => setHoverButton(null)}
+                  onClick={() => {
+                    openModal();
+                    selectGroup(group.id, group.name);
+                  }}
+                  className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+                    hoverButton === group.id ? "hover:bg-pink-500" : ""
+                  }`}
+                >
+                  {group.name}
+                </motion.button>
+              </Tooltip>
             ))}
           {isBelongTo &&
             Array.isArray(belongsTo) &&
             belongsTo.map((group) => (
-              <motion.button
+              <Tooltip
+                initial={{
+                  opacity: 0,
+                  y: -20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  mount: { scale: 1, y: 1 },
+                }}
+                transition={{
+                  duration: 1,
+                  delay: 0.1,
+                }}
+                content={
+                  <div className="p-2">
+                    <Typography color="white" className="text-xs">
+                      {`Click to see ${group.name} group details`}
+                    </Typography>
+                  </div>
+                }
                 key={group.id}
-                variants={buttonVariants}
-                whileHover="hover"
-                onMouseEnter={() => setHoverButton(group.id)}
-                onMouseLeave={() => setHoverButton(null)}
-                onClick={() => router.push(`/forum/group/${group.id}`)}
-                className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
-                  hoverButton === group.id ? "hover:bg-pink-500" : ""
-                }`}
               >
-                {group.name}
-              </motion.button>
+                <motion.button
+                  key={group.id}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  onMouseEnter={() => setHoverButton(group.id)}
+                  onMouseLeave={() => setHoverButton(null)}
+                  onClick={() => router.push(`/forum/group/${group.id}`)}
+                  className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
+                    hoverButton === group.id ? "hover:bg-pink-500" : ""
+                  }`}
+                >
+                  {group.name}
+                </motion.button>
+              </Tooltip>
             ))}
         </div>
       </motion.div>

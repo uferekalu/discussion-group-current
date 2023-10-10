@@ -7,11 +7,15 @@ import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { useRouter } from "next/router";
 import { Reusables } from "@/utils/Reusables";
 import { getCookie, parseTokenExpiration, setCookie } from "@/utils/utility";
-import { DecodedJWT, RenderItemProps } from "@/utils/interface";
+import {
+  AllGroupsObject,
+  DecodedJWT,
+  RenderItemProps,
+} from "@/utils/interface";
 import { Section } from "@/components/layout/Section";
 import { Footer } from "@/components/footer";
 import { motion } from "framer-motion";
-import { allGroups, joinAGroup } from "@/slices/groupSlice";
+import { allGroups, getAllNotifications, joinAGroup } from "@/slices/groupSlice";
 import PulseAnimations from "@/components/animations/PulseAnimations";
 import GroupCard from "@/components/group/GroupCard";
 import Navigation from "@/components/navigation/Navigation";
@@ -23,6 +27,8 @@ import HasJoinedNotification from "@/components/group/HasJoinedNotification";
 import SideComp from "@/components/sideComp/SideComp";
 import CreateGroup from "@/components/group/CreateGroup";
 import CreateGroupNotification from "@/components/group/CreateGroupNotification";
+import { getAllUsers } from "@/slices/userSlice";
+import StartDiscussion from "@/components/discussion/StartDiscussion";
 
 const Forum: NextPage = () => {
   const [authenticatedUser, setAuthenticatedUser] = useState<DecodedJWT>();
@@ -47,11 +53,15 @@ const Forum: NextPage = () => {
   const [confirmJoinGroup, setConfirmJoinGroup] = useState<boolean>(false);
   const [hasJoined, setHasJoined] = useState<boolean>(false);
   const [isMember, setIsMember] = useState<boolean>(false);
+  const [groupsUserCreated, setGroupsUsersCreated] = useState<
+    string[] | unknown
+  >([]);
 
   const groups = useAppSelector((state: RootState) => state.groups);
-  const auth = useAppSelector((state) => state.auth);
+  const users = useAppSelector((state: RootState) => state.user);
   const dispatch = useAppDispatch();
   const router = useRouter();
+
   const {
     handleOpenRegisterModal,
     handleOpenLoginModal,
@@ -60,8 +70,14 @@ const Forum: NextPage = () => {
     handleCreateGroupNotification,
     createGroupNotification,
     setCreateGroupNotification,
-    handleCreateAGroup
+    handleCreateAGroup,
+    discussionModal,
+    setDiscussionModal,
+    discussionGroupId,
+    setDiscussionGroupId,
   } = Reusables();
+
+  console.log("discussion group id", discussionGroupId);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -84,6 +100,10 @@ const Forum: NextPage = () => {
   };
 
   useEffect(() => {
+    dispatch(getAllUsers());
+  }, [dispatch]);
+
+  useEffect(() => {
     const groupMembers = groups.groupDetails.Group_members;
     const index = groupMembers.findIndex(
       (member) => member.User.username === authenticatedUser?.username
@@ -100,6 +120,10 @@ const Forum: NextPage = () => {
   };
 
   useEffect(() => {
+    dispatch(getAllNotifications());
+  }, [dispatch]);
+
+  useEffect(() => {
     const handleJoinGroupAction = async () => {
       if (confirmJoinGroup) {
         await dispatch(joinAGroup(chosenGroup?.id));
@@ -114,6 +138,20 @@ const Forum: NextPage = () => {
   const handleIsLoggedOut = () => {
     setIsLoggedOut(true);
   };
+
+  const handleGroupsUsersCreated = useCallback(() => {
+    const allGroups = groups.allGroups;
+    const groupsCreatedByUser = new Set();
+
+    for (let group of allGroups) {
+      let createdByUser = false;
+      if (group.creatorName === authenticatedUser?.name) {
+        createdByUser = true;
+        groupsCreatedByUser.add({ id: group.id, name: group.name });
+      }
+    }
+    setGroupsUsersCreated(Array.from(groupsCreatedByUser));
+  }, [authenticatedUser?.name, groups.allGroups]);
 
   const handleGroupsUserBelongsTo = useCallback(() => {
     const allGroups = groups.allGroups;
@@ -189,6 +227,10 @@ const Forum: NextPage = () => {
         startIndex={startIndex}
         endIndex={endIndex}
         discussions={groups.discussions}
+        openModal={openModal}
+        selectGroup={selectGroup}
+        setDiscussionModal={setDiscussionModal}
+        setDiscussionGroupId={setDiscussionGroupId}
       />
     );
   };
@@ -214,6 +256,14 @@ const Forum: NextPage = () => {
         isBelongTo={isBelongsTo}
         groupStatus={groups.groupStatus}
         handleCreateAGroup={handleCreateAGroup}
+        handleGroupsUsersCreated={handleGroupsUsersCreated}
+        groupsUserCreated={groupsUserCreated}
+        users={users.users}
+        groups={groups.allGroups}
+        showSendInviteGroup={true}
+        notifications={groups.allNotifications}
+        notificationStatus={groups.allNotificationsStatus}
+        notificationError={groups.allNotificationsError}
       />
       <Section
         width="w-full"
@@ -332,6 +382,16 @@ const Forum: NextPage = () => {
         <CreateGroupNotification
           closeHasJoined={() => setCreateGroupNotification(false)}
           text={`Group created successfully`}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={discussionModal}
+        onClose={() => setDiscussionModal(false)}
+        deSelectGroup={() => {}}
+      >
+        <StartDiscussion
+          closeStartDiscussion={() => setDiscussionModal(false)}
+          discussionGroupId={discussionGroupId}
         />
       </ReusableModal>
     </div>

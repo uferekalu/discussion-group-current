@@ -83,6 +83,16 @@ const UserDetail: NextPage = () => {
         }}
         isJoinAGroup={false}
         isBelongTo={false}
+        handleCreateAGroup={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        handleGroupsUsersCreated={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        groupsUserCreated={undefined}
+        users={[]}
+        groups={[]}
+        showSendInviteGroup={false}
       />
       <Section
         width="w-full"

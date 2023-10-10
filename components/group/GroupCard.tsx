@@ -16,6 +16,10 @@ interface IGroupCard {
   startIndex: number;
   endIndex: number;
   discussions: DiscussionObject[];
+  openModal: () => void;
+  selectGroup: (id: number, name: string) => void;
+  setDiscussionModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setDiscussionGroupId: React.Dispatch<React.SetStateAction<number | null>>
 }
 
 const GroupCard: React.FC<IGroupCard> = ({
@@ -24,11 +28,16 @@ const GroupCard: React.FC<IGroupCard> = ({
   startIndex,
   endIndex,
   discussions,
+  openModal,
+  selectGroup,
+  setDiscussionModal,
+  setDiscussionGroupId
 }) => {
   const [groupId, setGroupId] = useState<number | null>(null);
   const router = useRouter();
 
-  const { buttonVariants, hoverButton, setHoverButton } = Reusables();
+  const { buttonVariants, hoverButton, setHoverButton } =
+    Reusables();
 
   const handleGroupId = (id: number) => {
     setGroupId((prevState) => {
@@ -168,7 +177,7 @@ const GroupCard: React.FC<IGroupCard> = ({
                     100
                   )}...`}</p>
                 </div>
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-2 mt-3">
                   {isMember ? (
                     <>
                       <Select text="Group Members">
@@ -192,7 +201,10 @@ const GroupCard: React.FC<IGroupCard> = ({
                       <motion.button
                         variants={buttonVariants}
                         whileHover="hover"
-                        onClick={() => {}}
+                        onClick={() => {
+                          setDiscussionModal(true);
+                          setDiscussionGroupId(group.id);
+                        }}
                         onMouseEnter={() => setHoverButton("Start Discussion")}
                         onMouseLeave={() => setHoverButton(null)}
                         className={`bg-blue-500 p-2 rounded-lg shadow-lg text-white text-xs ${
@@ -208,6 +220,10 @@ const GroupCard: React.FC<IGroupCard> = ({
                     <motion.button
                       variants={buttonVariants}
                       whileHover="hover"
+                      onClick={() => {
+                        openModal();
+                        selectGroup(group.id, group.name);
+                      }}
                       onMouseEnter={() => setHoverButton("Join Group")}
                       onMouseLeave={() => setHoverButton(null)}
                       className={`bg-blue-500 p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${

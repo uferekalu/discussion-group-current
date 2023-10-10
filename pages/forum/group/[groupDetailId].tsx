@@ -10,6 +10,8 @@ import {
   allGroups,
   getAGroup,
   getAllDiscussionsInAGroup,
+  getAllNotifications,
+  joinAGroup,
 } from "@/slices/groupSlice";
 import jwtDecode from "jwt-decode";
 import { RootState } from "@/store";
@@ -24,10 +26,33 @@ import HorizontalSlider from "@/components/slider/HorizontalSlider";
 import GroupDetailComp from "@/components/group/GroupDetailComp";
 import { Reusables } from "@/utils/Reusables";
 import { Footer } from "@/components/footer";
+import ReusableModal from "@/components/modal/ReusableModal";
+import CreateGroup from "@/components/group/CreateGroup";
+import CreateGroupNotification from "@/components/group/CreateGroupNotification";
+import JoinGroupContent from "@/components/group/JoinGroupContent";
+import HasJoinedNotification from "@/components/group/HasJoinedNotification";
+import StartDiscussion from "@/components/discussion/StartDiscussion";
 
 const GroupDetail: NextPage = () => {
-  const [authenticatedUser, setAuthenticatedUser] = useState<DecodedJWT>();
+  const [authenticatedUser, setAuthenticatedUser] = useState<DecodedJWT | undefined>();
   const [isLoggedOut, setIsLoggedOut] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isBelongsTo, setIsBelongsTo] = useState<boolean>(false);
+  const [isJoinAGroup, setIsJoinAGroup] = useState<boolean>(false);
+  const [belongsTo, setBelongsTo] = useState<string[] | unknown>([]);
+  const [groupsToJoin, setGroupsToJoin] = useState<string[] | unknown>([]);
+  const [chosenGroup, setChosenGroup] = useState<{
+    id: any;
+    name: string;
+  }>({
+    id: null,
+    name: "",
+  });
+  const [groupsUserCreated, setGroupsUsersCreated] = useState<
+    string[] | unknown
+  >([]);
+  const [confirmJoinGroup, setConfirmJoinGroup] = useState<boolean>(false);
+  const [hasJoined, setHasJoined] = useState<boolean>(false);
   const router = useRouter();
   const { groupDetailId }: any = router.query;
   const dispatch = useAppDispatch();
@@ -37,15 +62,134 @@ const GroupDetail: NextPage = () => {
     [token]
   );
   const groups = useAppSelector((state: RootState) => state.groups);
-  const { buttonVariants, setHoverButton, hoverButton } = Reusables();
+  const users = useAppSelector((state: RootState) => state.user);
+  const {
+    buttonVariants,
+    setHoverButton,
+    hoverButton,
+    handleCreateAGroup,
+    createAGroup,
+    setCreateAGroup,
+    handleCreateGroupNotification,
+    createGroupNotification,
+    setCreateGroupNotification,
+    discussionModal,
+    setDiscussionModal,
+    discussionGroupId,
+    setDiscussionGroupId
+  } = Reusables();
+
+  console.log("discussion group id", discussionGroupId)
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const openHasJoined = () => setHasJoined(true);
+  const closeHasJoined = () => setHasJoined(false);
+
+  const selectGroup = (id: number, name: string) => {
+    setChosenGroup({
+      id,
+      name,
+    });
+  };
+
+  const deSelectGroup = () => {
+    setChosenGroup({
+      id: null,
+      name: "",
+    });
+  };
+
+  const handleConfirmJoinGroup = () => {
+    setConfirmJoinGroup(true);
+  };
+
+  useEffect(() => {
+    dispatch(getAllNotifications());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleJoinGroupAction = async () => {
+      if (confirmJoinGroup) {
+        await dispatch(joinAGroup(chosenGroup?.id));
+        await dispatch(allGroups());
+        openHasJoined();
+        closeModal();
+      }
+    };
+    handleJoinGroupAction();
+  }, [dispatch, confirmJoinGroup, chosenGroup.id]);
 
   const handleIsLoggedOut = () => {
     setIsLoggedOut(true);
   };
 
+  const handleGroupsUsersCreated = useCallback(() => {
+    const allGroups = groups.allGroups;
+    const groupsCreatedByUser = new Set();
+
+    for (let group of allGroups) {
+      let createdByUser = false;
+      if (group.creatorName === authenticatedUser?.name) {
+        createdByUser = true;
+        groupsCreatedByUser.add({ id: group.id, name: group.name });
+      }
+    }
+    setGroupsUsersCreated(Array.from(groupsCreatedByUser));
+  }, [authenticatedUser?.name, groups.allGroups]);
+
   useEffect(() => {
     dispatch(allGroups());
   }, [dispatch]);
+
+  const handleGroupsUserBelongsTo = useCallback(() => {
+    const allGroups = groups.allGroups;
+    const groupsUserBelong = new Set();
+
+    for (let group of allGroups) {
+      const groupMembers = group.allUsers;
+      let shoulBelongTo = false;
+
+      for (let member of groupMembers) {
+        if (authenticatedUser?.username === member) {
+          shoulBelongTo = true;
+          groupsUserBelong.add({ id: group.id, name: group.name });
+        }
+      }
+    }
+    setIsBelongsTo(true);
+    setIsJoinAGroup(false);
+    setBelongsTo(Array.from(groupsUserBelong));
+  }, [groups.allGroups, authenticatedUser?.username]);
+
+  const handleJoinAGroup = useCallback(() => {
+    const allGroups = groups.allGroups;
+    const groupsToJoin = new Set();
+
+    for (let group of allGroups) {
+      const groupMembers = group.allUsers;
+      let shouldJoinGroup = true;
+
+      for (let member of groupMembers) {
+        if (authenticatedUser?.username === member) {
+          shouldJoinGroup = false;
+          break;
+        }
+      }
+
+      if (shouldJoinGroup) {
+        groupsToJoin.add({ id: group.id, name: group.name });
+      }
+    }
+    setIsJoinAGroup(true);
+    setIsBelongsTo(false);
+    setGroupsToJoin(Array.from(groupsToJoin));
+  }, [groups.allGroups, authenticatedUser?.username]);
+
+  useEffect(() => {
+    handleJoinAGroup();
+  }, [handleJoinAGroup]);
 
   useEffect(() => {
     if (groupDetailId) {
@@ -76,6 +220,10 @@ const GroupDetail: NextPage = () => {
         startIndex={startIndex}
         endIndex={endIndex}
         discussions={groups.discussions}
+        openModal={openModal}
+        selectGroup={selectGroup}
+        setDiscussionModal={setDiscussionModal}
+        setDiscussionGroupId={setDiscussionGroupId}
       />
     );
   };
@@ -95,22 +243,24 @@ const GroupDetail: NextPage = () => {
         handleLogin={function (): void {
           throw new Error("Function not implemented.");
         }}
-        groupStatus={""}
-        groupsToJoin={undefined}
-        openModal={function (): void | undefined {
-          throw new Error("Function not implemented.");
-        }}
-        selectGroup={function (id: number, name: string): void {
-          throw new Error("Function not implemented.");
-        }}
-        handleGroupsUserBelongsTo={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        handleJoinAGroup={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        isJoinAGroup={false}
-        isBelongTo={false}
+        groupStatus={groups.groupStatus}
+        groupsToJoin={groupsToJoin}
+        openModal={openModal}
+        selectGroup={selectGroup}
+        handleGroupsUserBelongsTo={handleGroupsUserBelongsTo}
+        handleJoinAGroup={handleJoinAGroup}
+        isJoinAGroup={isJoinAGroup}
+        belongsTo={belongsTo}
+        isBelongTo={isBelongsTo}
+        handleCreateAGroup={handleCreateAGroup}
+        handleGroupsUsersCreated={handleGroupsUsersCreated}
+        groupsUserCreated={groupsUserCreated}
+        users={users.users}
+        groups={groups.allGroups}
+        showSendInviteGroup={true}
+        notifications={groups.allNotifications}
+        notificationStatus={groups.allNotificationsStatus}
+        notificationError={groups.allNotificationsError}
       />
       <Section
         width="w-full"
@@ -187,7 +337,10 @@ const GroupDetail: NextPage = () => {
                       whileHover="hover"
                       onMouseEnter={() => setHoverButton("Start Discussion")}
                       onMouseLeave={() => setHoverButton(null)}
-                      onClick={() => {}}
+                      onClick={() => {
+                        setDiscussionModal(true);
+                        setDiscussionGroupId(groupDetailId);
+                      }}
                       className={`sm:bg-blue-500 bg-white p-2 rounded-lg shadow-lg sm:text-white text-black text-xs ${
                         hoverButton === "Start Discussion"
                           ? "hover:bg-pink-500"
@@ -267,7 +420,10 @@ const GroupDetail: NextPage = () => {
                       whileHover="hover"
                       onMouseEnter={() => setHoverButton("Start Discussion")}
                       onMouseLeave={() => setHoverButton(null)}
-                      onClick={() => {}}
+                      onClick={() => {
+                        setDiscussionModal(true);
+                        setDiscussionGroupId(groupDetailId);
+                      }}
                       className={`bg-blue-500 p-2 rounded-lg shadow-lg sm:text-white text-white text-xs ${
                         hoverButton === "Start Discussion"
                           ? "hover:bg-pink-500"
@@ -298,6 +454,58 @@ const GroupDetail: NextPage = () => {
         </div>
       </Section>
       <Footer />
+      <ReusableModal
+        open={isModalOpen}
+        onClose={closeModal}
+        deSelectGroup={deSelectGroup}
+      >
+        <JoinGroupContent
+          closeModal={closeModal}
+          deSelectGroup={deSelectGroup}
+          handleConfirmJoinGroup={handleConfirmJoinGroup}
+          chosenGroup={chosenGroup}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={hasJoined}
+        onClose={closeHasJoined}
+        deSelectGroup={() => {}}
+      >
+        <HasJoinedNotification
+          closeHasJoined={closeHasJoined}
+          text={groups.joinAGroupResult}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={createAGroup}
+        onClose={() => setCreateAGroup(false)}
+        deSelectGroup={() => {}}
+      >
+        <CreateGroup
+          closeCreateGroup={() => setCreateAGroup(false)}
+          handleCreateGroupNotification={handleCreateGroupNotification}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={createGroupNotification}
+        onClose={() => setCreateGroupNotification(false)}
+        deSelectGroup={() => {}}
+      >
+        <CreateGroupNotification
+          closeHasJoined={() => setCreateGroupNotification(false)}
+          text={`Group created successfully`}
+        />
+      </ReusableModal>
+      <ReusableModal
+        open={discussionModal}
+        onClose={() => setDiscussionModal(false)}
+        deSelectGroup={() => {}}
+      >
+        <StartDiscussion
+          closeStartDiscussion={() => setDiscussionModal(false)}
+          discussionGroupId={discussionGroupId}
+        />
+      </ReusableModal>
     </div>
   );
 };

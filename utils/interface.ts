@@ -178,12 +178,15 @@ export interface UserObject {
 }
 
 export interface User {
+  users: UserObject[]
   userDetails: UserObject;
   userStatus: string;
   userError: string;
   userUpdateStatus: string;
   userUpdateError: string;
   userUpdateMessage: string;
+  allUsersStatus: string,
+  allUsersError: string,
 }
 
 export interface UploadImage {

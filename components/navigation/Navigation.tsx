@@ -1,20 +1,35 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Logo } from "../logo/Logo";
 import { Reusables } from "@/utils/Reusables";
 import { Section } from "../layout/Section";
 import { getCookie, setCookie } from "@/utils/utility";
-import { DecodedJWT } from "@/utils/interface";
+import {
+  AllGroupsObject,
+  AllNotifications,
+  DecodedJWT,
+  UserObject,
+} from "@/utils/interface";
 import NavButton from "./NavButton";
-import { useAppDispatch } from "@/store/hook";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { allGroups } from "@/slices/groupSlice";
 import PulseAnimations from "../animations/PulseAnimations";
 import GroupsUserCanJoinAndBelongsTo from "../group/GroupsUserCanJoinAndBelongsTo";
+import ReusableModal from "../modal/ReusableModal";
+import InviteUserToJoinGroup from "../group/InviteUserToJoinGroup";
+import { RootState } from "@/store";
+import { Notifications } from "../notifications/Notifications";
 
 interface INavigation {
   handleRegister: () => void;
   handleLogin: () => void;
-  authenticatedUser?: DecodedJWT;
+  authenticatedUser: DecodedJWT | undefined;
   handleIsLoggedOut: () => void;
   groupStatus: string;
   groupsToJoin: string[] | unknown;
@@ -26,6 +41,14 @@ interface INavigation {
   handleCreateAGroup: () => void;
   isJoinAGroup: boolean;
   isBelongTo: boolean;
+  handleGroupsUsersCreated: () => void;
+  groupsUserCreated: string[] | unknown;
+  users: UserObject[];
+  groups: AllGroupsObject[];
+  showSendInviteGroup: boolean;
+  notifications: AllNotifications[];
+  notificationStatus: string;
+  notificationError: string;
 }
 
 const Navigation: React.FC<INavigation> = ({
@@ -43,11 +66,21 @@ const Navigation: React.FC<INavigation> = ({
   handleCreateAGroup,
   isJoinAGroup,
   isBelongTo,
+  handleGroupsUsersCreated,
+  groupsUserCreated,
+  users,
+  groups,
+  showSendInviteGroup,
+  notifications,
+  notificationStatus,
+  notificationError,
 }) => {
   const [scrolling, setScrolling] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [sendInvite, setSendInvite] = useState<boolean>(false);
   const token = useMemo(() => getCookie("token"), []);
   const menuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
   const controls = useAnimation();
   const {
@@ -57,9 +90,18 @@ const Navigation: React.FC<INavigation> = ({
     handleOnMouseEnter,
     handleOnMouseLeave,
     setToggleMenu,
-    createAGroup,
-    setCreateAGroup,
+    handleNotificationOutsideClick,
+    showNotification,
+    setShowNotification,
   } = Reusables();
+
+  const handleOpenSendInvite = () => {
+    setSendInvite(true);
+  };
+
+  const handleCloseSendInvite = () => {
+    setSendInvite(false);
+  };
 
   const handleScroll = () => {
     if (window.scrollY > 100) {
@@ -67,6 +109,16 @@ const Navigation: React.FC<INavigation> = ({
     } else {
       setScrolling(false);
     }
+  };
+
+  useEffect(() => {
+    handleNotificationOutsideClick(notificationRef, setShowNotification);
+  }, [handleNotificationOutsideClick, setShowNotification]);
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setShowNotification((prevState) => !prevState);
+    setToggleMenu(false);
   };
 
   useEffect(() => {
@@ -80,10 +132,6 @@ const Navigation: React.FC<INavigation> = ({
       document.removeEventListener("click", handleOutsideClick);
     };
   }, [setToggleMenu]);
-
-  useEffect(() => {
-    dispatch(allGroups());
-  }, [dispatch]);
 
   useEffect(() => {
     if (token) {
@@ -169,37 +217,52 @@ const Navigation: React.FC<INavigation> = ({
             )}
             {isLoggedIn && (
               <div className="flex space-x-3">
-                <div
-                  className="flex mr-1 mt-1 cursor-pointer"
-                  onClick={() => {}}
-                >
-                  <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
-                  <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
-                    10
-                  </span>
-                </div>
-                <NavButton
-                  text="Send an Invite"
-                  onClick={() => {}}
-                  handleOnMouseEnter={() =>
-                    handleOnMouseEnter("Send an Invite")
-                  }
-                  handleOnMouseLeave={handleOnMouseLeave}
-                  mouseResult={mouseResult}
-                  extrClass=""
-                  background="bg-teal-500"
-                />
-                <NavButton
-                  text="Create a Group"
-                  onClick={() => handleCreateAGroup()}
-                  handleOnMouseEnter={() =>
-                    handleOnMouseEnter("Create a Group")
-                  }
-                  handleOnMouseLeave={handleOnMouseLeave}
-                  mouseResult={mouseResult}
-                  extrClass=""
-                  background="bg-indigo-500"
-                />
+                {showSendInviteGroup && (
+                  <>
+                    {notifications && (
+                      <div
+                        className="flex mr-1 mt-1 cursor-pointer"
+                        onClick={handleClick}
+                      >
+                        <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
+                        <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
+                          {notifications.length}
+                        </span>
+                      </div>
+                    )}
+                    <Notifications
+                      showNotification={showNotification}
+                      notifications={notifications}
+                      notificationStatus={notificationStatus}
+                      notificationError={notificationError}
+                    />
+                    <NavButton
+                      text="Send an Invite"
+                      onClick={() => {
+                        handleOpenSendInvite();
+                        handleGroupsUsersCreated();
+                      }}
+                      handleOnMouseEnter={() =>
+                        handleOnMouseEnter("Send an Invite")
+                      }
+                      handleOnMouseLeave={handleOnMouseLeave}
+                      mouseResult={mouseResult}
+                      extrClass=""
+                      background="bg-teal-500"
+                    />
+                    <NavButton
+                      text="Create a Group"
+                      onClick={() => handleCreateAGroup()}
+                      handleOnMouseEnter={() =>
+                        handleOnMouseEnter("Create a Group")
+                      }
+                      handleOnMouseLeave={handleOnMouseLeave}
+                      mouseResult={mouseResult}
+                      extrClass=""
+                      background="bg-indigo-500"
+                    />
+                  </>
+                )}
                 <NavButton
                   text="Logout"
                   onClick={() => handleLogout()}
@@ -214,14 +277,20 @@ const Navigation: React.FC<INavigation> = ({
           </div>
           <div ref={menuRef}>
             <div className="sm:hidden flex space-x-2">
-              {isLoggedIn && (
-                <div onClick={() => {}} className="flex mr-1 mt-1">
+              {isLoggedIn && notifications && (
+                <div onClick={handleClick} className="flex mr-1 mt-1">
                   <li className="bi bi-bell-fill text-white text-xl mt-1 mr-1 list-none"></li>
                   <span className="flex w-4 h-4 -mt-1 p-3 -ml-2 justify-center items-center text-xs m-auto bg-red-700 rounded-full text-white">
-                    10
+                    {notifications.length}
                   </span>
                 </div>
               )}
+              <Notifications
+                showNotification={showNotification}
+                notifications={notifications}
+                notificationStatus={notificationStatus}
+                notificationError={notificationError}
+              />
               <i
                 onClick={handleToggleMenu}
                 className={
@@ -289,7 +358,11 @@ const Navigation: React.FC<INavigation> = ({
                             <div className="grid grid-cols-3 gap-2">
                               <NavButton
                                 text="Send an Invite"
-                                onClick={() => {}}
+                                onClick={() => {
+                                  handleOpenSendInvite();
+                                  handleGroupsUsersCreated();
+                                  handleToggleMenu();
+                                }}
                                 handleOnMouseEnter={() =>
                                   handleOnMouseEnter("Send an Invite")
                                 }
@@ -356,6 +429,17 @@ const Navigation: React.FC<INavigation> = ({
           </div>
         </div>
       </div>
+      <ReusableModal
+        open={sendInvite}
+        onClose={handleCloseSendInvite}
+        deSelectGroup={() => {}}
+      >
+        <InviteUserToJoinGroup
+          groupsUserCreated={groupsUserCreated}
+          users={users}
+          groups={groups}
+        />
+      </ReusableModal>
     </motion.nav>
   );
 };

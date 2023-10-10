@@ -12,6 +12,12 @@ const Reusables = () => {
   const [createGroupNotification, setCreateGroupNotification] =
     useState<boolean>(false);
 
+  const [discussionModal, setDiscussionModal] = useState(false);
+  const [discussionGroupId, setDiscussionGroupId] = useState<number | null>(
+    null
+  );
+  const [showNotification, setShowNotification] = useState<boolean>(false);
+
   const handleCreateGroupNotification = () => {
     setCreateGroupNotification(true);
   };
@@ -21,11 +27,29 @@ const Reusables = () => {
   };
   const handleToggleMenu = () => {
     setToggleMenu((prevState) => !prevState);
-    // setShowNotification(false)
+    setShowNotification(false)
   };
 
   const handleOnMouseEnter = (data: string) => {
     setMouseResult(data);
+  };
+
+  const handleNotificationOutsideClick = (
+    notificationRef: React.RefObject<HTMLDivElement>,
+    setShowNotification: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    const handleOutsideNotificationClick = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setShowNotification(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideNotificationClick);
+    return () => {
+      document.removeEventListener("click", handleOutsideNotificationClick);
+    };
   };
 
   const handleOnMouseLeave = () => {
@@ -80,6 +104,13 @@ const Reusables = () => {
     createGroupNotification,
     setCreateGroupNotification,
     handleCreateGroupNotification,
+    discussionModal,
+    setDiscussionModal,
+    discussionGroupId,
+    setDiscussionGroupId,
+    handleNotificationOutsideClick,
+    showNotification,
+setShowNotification
   };
 };
 
