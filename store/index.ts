@@ -6,6 +6,14 @@ import uploadReducer from '../slices/uploadSlice'
 import inviteReducer from '../slices/sendInviteSlice'
 import discussionReducer from '../slices/createDiscussion'
 import deleteNotificationReducer from '../slices/deleteNotificationSlice'
+import discussionCommentsReducer from '../slices/commentsFromDiscussion'
+import getDiscussionReducer from '../slices/discussionSlice'
+import makeCommentDiscussionReducer from '../slices/makeACommentSlice'
+import likeADiscussionReducer from '../slices/likeADiscussionSlice'
+import dislikeADiscussionReducer from '../slices/dislikeADiscussionSlice'
+import replyACommentReducer from '../slices/replyACommentSlice'
+import likeACommentReducer from '../slices/likeACommentSlice'
+import dislikeACommentReducer from '../slices/dislikeACommentSlice'
 
 const store = configureStore({
   reducer: {
@@ -15,7 +23,15 @@ const store = configureStore({
     upload: uploadReducer,
     invite: inviteReducer,
     discussion: discussionReducer,
-    deleteNotification: deleteNotificationReducer
+    deleteNotification: deleteNotificationReducer,
+    discussionComments: discussionCommentsReducer,
+    getADiscussion: getDiscussionReducer,
+    makeCommentDiscussion: makeCommentDiscussionReducer,
+    likeADiscussion: likeADiscussionReducer,
+    dislikeADiscussion: dislikeADiscussionReducer,
+    replyAComment: replyACommentReducer,
+    likeAComment: likeACommentReducer,
+    dislikeAComment: dislikeACommentReducer
   },
 });
 

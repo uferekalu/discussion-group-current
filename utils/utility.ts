@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export function getCookie(name: string) {
   if (typeof document !== "undefined") {
     const cookies = document.cookie.split(";").map((cookie) => cookie.trim());
@@ -49,24 +51,53 @@ export function setCookie(name: string, value: string, options = {}) {
 }
 
 export function parseTokenExpiration(token: string) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const expirationTimestamp = payload.exp;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const expirationTimestamp = payload.exp;
 
-      if (!expirationTimestamp) {
-        return null; // Token doesn't contain an expiration claim
-      }
-
-      const currentTimestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-
-      if (currentTimestamp > expirationTimestamp) {
-        return null; // Token has expired
-      }
-
-      // Return the expiration timestamp if the token is still valid
-      return expirationTimestamp;
-    } catch (error) {
-      console.error("Error parsing token:", error);
-      return null; // Error occurred while parsing
+    if (!expirationTimestamp) {
+      return null; // Token doesn't contain an expiration claim
     }
+
+    const currentTimestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+
+    if (currentTimestamp > expirationTimestamp) {
+      return null; // Token has expired
+    }
+
+    // Return the expiration timestamp if the token is still valid
+    return expirationTimestamp;
+  } catch (error) {
+    console.error("Error parsing token:", error);
+    return null; // Error occurred while parsing
   }
+}
+
+export function calculateDuration(date: string): string {
+  const now: Date = new Date();
+  const targetDate: Date = new Date(date);
+  const duration: number = targetDate.getTime() - now.getTime();
+
+  const seconds: number = Math.floor(Math.abs(duration) / 1000);
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+
+  const minutes: number = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+
+  const hours: number = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h`;
+  }
+
+  const days: number = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
+export function formatDate(date: string): string {
+  const formattedDate: string = moment(date).format('HH:mm - DD MMM YY');
+  return formattedDate;
+}

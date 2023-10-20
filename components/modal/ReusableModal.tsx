@@ -7,6 +7,7 @@ interface IModal {
   onClose: () => void;
   children: ReactNode;
   deSelectGroup: () => void;
+  background?: string;
 }
 
 const ReusableModal: React.FC<IModal> = ({
@@ -14,6 +15,7 @@ const ReusableModal: React.FC<IModal> = ({
   onClose,
   children,
   deSelectGroup,
+  background,
 }) => {
   if (!open) return null;
 
@@ -25,8 +27,16 @@ const ReusableModal: React.FC<IModal> = ({
       <div className="fixed inset-0 z-40 bg-black opacity-50"></div>
       {/* Modal */}
       <div className="fixed p-4 inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-        <div className="relative sm:max-w-sm mx-auto my-6">
-          <div className="modal-content bg-white rounded-lg shadow-lg p-3 mt-3">
+        <div
+          className={`relative sm:max-w-sm mx-auto my-6 ${
+            background ? background : undefined
+          }`}
+        >
+          <div
+            className={`modal-content bg-white rounded-lg shadow-lg p-3 mt-3 ${
+              background ? background : undefined
+            }`}
+          >
             <div className="px-4 py-3">{children}</div>
           </div>
           <motion.button

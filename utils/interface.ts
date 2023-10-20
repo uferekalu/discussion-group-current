@@ -126,12 +126,12 @@ export interface AllGroupsObject {
 }
 
 export interface AllNotifications {
-  id: number
+  id: number;
   sender: string;
   group: string;
   discussion: string | null;
   content: string;
-  message: string
+  message: string;
   status: string;
   createdAt: string;
 }
@@ -178,15 +178,15 @@ export interface UserObject {
 }
 
 export interface User {
-  users: UserObject[]
+  users: UserObject[];
   userDetails: UserObject;
   userStatus: string;
   userError: string;
   userUpdateStatus: string;
   userUpdateError: string;
   userUpdateMessage: string;
-  allUsersStatus: string,
-  allUsersError: string,
+  allUsersStatus: string;
+  allUsersError: string;
 }
 
 export interface UploadImage {
@@ -203,4 +203,109 @@ export interface UserUpdateData {
   sex: string;
   hobbies: string;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export interface DeleteNotificationSlice {
+  message: string;
+  deleteNotificationStatus: string;
+  deleteNotificationError: string;
+}
+
+export interface IReplies {
+  id: number;
+  content: string;
+  author_id: number;
+  comment_id: number;
+  likes: number;
+  dislikes: number;
+  createdAt: string
+  User: UserObject;
+}
+
+export interface IComment {
+  id: number | null;
+  content: string;
+  author_id: number | null;
+  discussion_id: number | null;
+  likes: number;
+  dislikes: number;
+  createdAt: string
+  User: UserObject;
+  Replies: IReplies[];
+}
+
+export interface ICommentData {
+  discussion: {
+    id: number | null;
+    title: string;
+    content: string;
+    author_id: number | null;
+    group_id: number | null;
+    createdAt: string;
+    Comments: IComment[];
+  };
+  creator: {
+    id: number | null;
+    name: string;
+    email: string;
+    username: string;
+    sex: string;
+    profile_picture: string;
+    hobbies: string;
+    country: string;
+  };
+}
+
+export interface CommentsFromADiscussion {
+  data: ICommentData;
+  commentStatus: string;
+  commentError: string;
+}
+
+export interface IDiscussionObj {
+  id: number | null;
+  title: string;
+  content: string;
+  author_id: number | null;
+  group_id: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface IDiscussion {
+  data: IDiscussionObj
+  discussionStatus: string
+  discussionError: string
+}
+
+export interface IMakeCommentObj {
+  likes: number
+  dislikes: number
+  id: number | null
+  content: string
+  author_id: number | null,
+  discussion_id: number | null,
+  updatedAt: string
+  createdAt: string
+}
+export interface IMakeComment {
+  data: IMakeCommentObj
+  makeCommentStatus: string
+  makeCommentError: string
+}
+
+export interface IReplyCommentObj {
+  likes: number
+  dislikes: number
+  id: number | null
+  content: string
+  author_id: number | null,
+  comment_id: number | null,
+  updatedAt: string
+  createdAt: string
+}
+
+export interface IReplyComment {
+  data: IReplyCommentObj
+  replyCommentStatus: string
+  replyCommentError: string
 }

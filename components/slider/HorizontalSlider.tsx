@@ -1,5 +1,6 @@
-import { DiscussionObject } from "@/utils/interface";
+import { useRouter } from "next/router";
 import React, { useRef, useState, useEffect } from "react";
+import { DiscussionObject } from "@/utils/interface";
 
 interface HorizontalSliderProps {
   items: DiscussionObject[];
@@ -11,6 +12,7 @@ interface HorizontalSliderProps {
   backgroundPosition: string;
   slideDuration?: number;
   slideInterval?: number;
+  groupDetailId: number
 }
 
 const HorizontalSlider: React.FC<HorizontalSliderProps> = ({
@@ -23,10 +25,12 @@ const HorizontalSlider: React.FC<HorizontalSliderProps> = ({
   backgroundPosition,
   slideDuration = 500,
   slideInterval = 2000,
+  groupDetailId
 }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [scrollDirection, setScrollDirection] = useState(1); // 1 for forward, -1 for reverse
+  const router = useRouter()
 
   const handlePrev = () => {
     if (sliderRef.current) {
@@ -121,6 +125,7 @@ const HorizontalSlider: React.FC<HorizontalSliderProps> = ({
           {items.map((item) => (
             <div
               key={item.id}
+              onClick={() => router.push(`/forum/group/discussion/${item.id}`)}
               className="flex-shrink-0 w-[200px] h-[200px] bg-blue-200 flex items-center justify-center px-2 cursor-pointer"
               style={{
                 minWidth: slideWidth,

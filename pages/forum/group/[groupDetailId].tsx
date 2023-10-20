@@ -361,6 +361,7 @@ const GroupDetail: NextPage = () => {
                     backgroundPosition="center"
                     slideDuration={500}
                     slideInterval={2000}
+                    groupDetailId={groupDetailId}
                   />
                 )}
                 <GroupDetailComp group={groups.groupDetails} />
@@ -444,6 +445,7 @@ const GroupDetail: NextPage = () => {
                     backgroundPosition="center"
                     slideDuration={500}
                     slideInterval={2000}
+                    groupDetailId={groupDetailId}
                   />
                 )}
                 <GroupDetailComp group={groups.groupDetails} />

@@ -311,7 +311,7 @@ const groupSlice = createSlice({
       return {
         ...state,
         allNotificationsStatus: "rejected",
-        allNotificationsError: action.payload.error,
+        allNotificationsError: action.payload,
       };
     });
   },

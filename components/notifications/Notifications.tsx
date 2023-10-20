@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { AllNotifications } from "@/utils/interface";
 import PulseAnimation from "../animations/PulseAnimations";
 import { Reusables } from "@/utils/Reusables";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { RootState } from "@/store";
+import ReusableModal from "../modal/ReusableModal";
+import ConfirmDeleteNotification from "./ConfirmDeleteNotification";
+import { deleteNotification } from "@/slices/deleteNotificationSlice";
+import { getAllNotifications } from "@/slices/groupSlice";
 
 interface INotification {
   showNotification: boolean;
@@ -23,15 +27,29 @@ const Notifications: React.FC<INotification> = ({
   const [unread, setUnread] = useState<boolean>(false);
   const [read, setRead] = useState<boolean>(false);
   const [notificationId, setNotificationId] = useState<number | null>(null);
-
-  console.log("notification id", notificationId);
+  const [confirmDeleteNotification, setConfirmDeleteNotification] =
+    useState<boolean>(false);
+  const [deleteNotificationReady, setDeleteNotificationReady] = useState(false);
 
   const dispatch = useAppDispatch();
-  const deleteNotification = useAppSelector(
+  const deleteNt = useAppSelector(
     (state: RootState) => state.deleteNotification
   );
 
   const { buttonVariants, setHoverButton, hoverButton } = Reusables();
+
+  useEffect(() => {
+    const handleDelete = async () => {
+      if (deleteNotificationReady && notificationId !== null) {
+        const data = {
+          id: notificationId,
+        };
+        await dispatch(deleteNotification(data));
+        await dispatch(getAllNotifications());
+      }
+    };
+    handleDelete();
+  }, [deleteNotificationReady, dispatch, notificationId]);
 
   const handleInbox = () => {
     setInbox(true);
@@ -89,7 +107,7 @@ const Notifications: React.FC<INotification> = ({
               <div className="flex space-x-2">
                 <input
                   type="checkbox"
-                  onClick={() => handleDelete(result.id)}
+                  onClick={() => handleNotificationId(result.id)}
                 />
                 <span className="text-black text-xs">
                   {text === "has reacted" || text === "has started a discussion"
@@ -100,6 +118,7 @@ const Notifications: React.FC<INotification> = ({
               <motion.button
                 variants={buttonVariants}
                 whileHover="hover"
+                onClick={handleDeleteNotification}
                 onMouseEnter={() => setHoverButton("Delete")}
                 onMouseLeave={() => setHoverButton(null)}
                 className={`bg-blue-500 p-2 rounded-lg shadow-lg text-white text-xs ${
@@ -133,7 +152,7 @@ const Notifications: React.FC<INotification> = ({
               <div className="flex space-x-2">
                 <input
                   type="checkbox"
-                  onClick={() => handleDelete(result.id)}
+                  onClick={() => handleNotificationId(result.id)}
                 />
                 <span className="text-black text-xs">
                   {text === "has reacted" || text === "has started a discussion"
@@ -144,6 +163,7 @@ const Notifications: React.FC<INotification> = ({
               <motion.button
                 variants={buttonVariants}
                 whileHover="hover"
+                onClick={handleDeleteNotification}
                 onMouseEnter={() => setHoverButton("Delete")}
                 onMouseLeave={() => setHoverButton(null)}
                 className={`bg-blue-500 p-2 rounded-lg shadow-lg text-white text-xs ${
@@ -177,7 +197,7 @@ const Notifications: React.FC<INotification> = ({
               <div className="flex space-x-2">
                 <input
                   type="checkbox"
-                  onClick={() => handleDelete(result.id)}
+                  onClick={() => handleNotificationId(result.id)}
                 />
                 <span className="text-black text-xs">
                   {text === "has reacted" || text === "has started a discussion"
@@ -188,6 +208,7 @@ const Notifications: React.FC<INotification> = ({
               <motion.button
                 variants={buttonVariants}
                 whileHover="hover"
+                onClick={handleDeleteNotification}
                 onMouseEnter={() => setHoverButton("Delete")}
                 onMouseLeave={() => setHoverButton(null)}
                 className={`bg-blue-500 p-2 rounded-lg shadow-lg text-white text-xs ${
@@ -210,7 +231,7 @@ const Notifications: React.FC<INotification> = ({
     );
   };
 
-  const handleDelete = (id: number) => {
+  const handleNotificationId = (id: number) => {
     setNotificationId((prevState) => {
       if (prevState === id) {
         prevState = null;
@@ -220,6 +241,14 @@ const Notifications: React.FC<INotification> = ({
       return prevState;
     });
   };
+
+  const handleDeleteNotification = useCallback(() => {
+    if (notificationId) {
+      setConfirmDeleteNotification(true);
+    } else {
+      setConfirmDeleteNotification(false);
+    }
+  }, [notificationId]);
   return (
     <>
       {showNotification && (
@@ -311,6 +340,18 @@ const Notifications: React.FC<INotification> = ({
           </div>
         </motion.div>
       )}
+      <ReusableModal
+        open={confirmDeleteNotification}
+        onClose={() => setConfirmDeleteNotification(false)}
+        deSelectGroup={() => {}}
+        background="bg-slate-300"
+      >
+        <ConfirmDeleteNotification
+          handleConfirm={() => setDeleteNotificationReady(true)}
+          handleCancel={() => setConfirmDeleteNotification(false)}
+          deleteState={deleteNt}
+        />
+      </ReusableModal>
     </>
   );
 };

@@ -1,12 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { setHeaders, url } from "./api";
-
-interface DeleteNotificationSlice {
-  message: string;
-  deleteNotificationStatus: string;
-  deleteNotificationError: string;
-}
+import { DeleteNotificationSlice } from "@/utils/interface";
 
 const initialState: DeleteNotificationSlice = {
   message: "",
@@ -16,11 +11,12 @@ const initialState: DeleteNotificationSlice = {
 
 export const deleteNotification = createAsyncThunk<
   string,
+  { id: number | null },
   { rejectValue: any }
->("notification/deleteNotification", async (id, thunkAPI) => {
+>("notification/deleteNotification", async ({ id }, thunkAPI) => {
   try {
     const response = await axios.delete(
-      `${url}/groups/notifications/:notificationId/${id}`,
+      `${url}/groups/notifications/${id}`,
       setHeaders()
     );
     const { message } = response.data;

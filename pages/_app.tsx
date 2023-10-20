@@ -4,7 +4,6 @@ import 'tippy.js/dist/tippy.css'
 import "@/styles/globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import store from "@/store";
-import ProtectedRoute from "@/utils/ProtectedRoute";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
