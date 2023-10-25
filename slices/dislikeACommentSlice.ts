@@ -55,6 +55,7 @@ const dislikACommentSlice = createSlice({
           ...state,
           dislikeACommentStatus: "success",
           message: action.payload,
+          dislikeACommentError: ""
         };
       } else {
         return state;
@@ -64,7 +65,7 @@ const dislikACommentSlice = createSlice({
       return {
         ...state,
         dislikeACommentStatus: "rejected",
-        dislikeACommentError: action.payload,
+        dislikeACommentError: action.payload.error,
       };
     });
   },

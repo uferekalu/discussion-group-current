@@ -77,8 +77,6 @@ const Forum: NextPage = () => {
     setDiscussionGroupId,
   } = Reusables();
 
-  console.log("discussion group id", discussionGroupId);
-
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 

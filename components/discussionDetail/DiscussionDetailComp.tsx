@@ -1,9 +1,14 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Reusables } from "@/utils/Reusables";
 import CommentComp from "./CommentComp";
 import { CommentsFromADiscussion } from "@/utils/interface";
 import { calculateDuration, formatDate } from "@/utils/utility";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
+import { likeADiscussion } from "@/slices/likeADiscussionSlice";
+import { discussionComments } from "@/slices/commentsFromDiscussion";
+import { dislikeADiscussion } from "@/slices/dislikeADiscussionSlice";
+import { RootState } from "@/store";
 
 interface IDiscussionDet {
   data: CommentsFromADiscussion;
@@ -12,6 +17,11 @@ interface IDiscussionDet {
 
 const DiscussionDetailComp: React.FC<IDiscussionDet> = ({ data, groupId }) => {
   const [isComment, setIsComment] = useState<boolean>(false);
+  const [discussionMsg, setDiscussionMsg] = useState<string>("")
+  const dispatch = useAppDispatch()
+  const likeADisc = useAppSelector((state: RootState) => state.likeADiscussion)
+  const dislikeADisc = useAppSelector((state: RootState) => state.dislikeADiscussion)
+
   const duration: string = calculateDuration(
     data && data.data.discussion.createdAt
   );
@@ -44,6 +54,15 @@ const DiscussionDetailComp: React.FC<IDiscussionDet> = ({ data, groupId }) => {
       ? "/images/profile_avatar.jpg"
       : `${baseUrl}/${sanitizedImage}`;
 
+  useEffect(() => {
+    if (likeADisc.likeADiscussionError) {
+      setDiscussionMsg(likeADisc.likeADiscussionError)
+    }
+    if (dislikeADisc.dislikeADiscussionError) {
+      setDiscussionMsg(dislikeADisc.dislikeADiscussionError)
+    }
+  }, [])
+
   const handleIsComment = () => {
     setIsComment((prevState) => !prevState);
   };
@@ -51,6 +70,34 @@ const DiscussionDetailComp: React.FC<IDiscussionDet> = ({ data, groupId }) => {
   const closeComment = () => {
     setIsComment(false);
   };
+
+  const handleThumbsUp = async () => {
+    const discussionDt = {
+      groupId,
+      discussionId: data.data.discussion.id,
+    };
+    const discussionData = {
+      data: {
+        discussion_id: data.data.discussion.id,
+      },
+    };
+    await dispatch(likeADiscussion(discussionData))
+    await dispatch(discussionComments(discussionDt));
+  }
+
+  const handleThumbsDown = async () => {
+    const discussionDt = {
+      groupId,
+      discussionId: data.data.discussion.id,
+    };
+    const discussionData = {
+      data: {
+        discussion_id: data.data.discussion.id,
+      },
+    };
+    await dispatch(dislikeADiscussion(discussionData))
+    await dispatch(discussionComments(discussionDt));
+  }
 
   return (
     <>
@@ -110,13 +157,18 @@ const DiscussionDetailComp: React.FC<IDiscussionDet> = ({ data, groupId }) => {
         </div>
       </div>
       <hr className="mt-1" />
+
+      {discussionMsg && (
+        <div className="flex text-center text-xs text-red-500 italic bg-white p-2 rounded-lg mt-2">{discussionMsg}</div>
+      )}
+
       <div className="flex sm:justify-start sm:space-x-7 justify-between mt-2">
         <i
           onClick={handleIsComment}
           className="bi bi-chat-dots text-white cursor-pointer"
         ></i>
-        <i className="bi bi-hand-thumbs-up text-white cursor-pointer"></i>
-        <i className="bi bi-hand-thumbs-down text-white cursor-pointer"></i>
+        <i onClick={handleThumbsUp} className="bi bi-hand-thumbs-up text-white cursor-pointer"></i>
+        <i onClick={handleThumbsDown} className="bi bi-hand-thumbs-down text-white cursor-pointer"></i>
         <i className="bi bi-share text-white cursor-pointer"></i>
       </div>
       <hr className="mt-1" />

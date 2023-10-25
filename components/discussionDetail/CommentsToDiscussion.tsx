@@ -1,8 +1,13 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CommentComp from "./CommentComp";
 import { CommentsFromADiscussion } from "@/utils/interface";
 import { calculateDuration } from "@/utils/utility";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
+import { likeAComment } from "@/slices/likeACommentSlice";
+import { discussionComments } from "@/slices/commentsFromDiscussion";
+import { dislikeAComment } from "@/slices/dislikeACommentSlice";
+import { RootState } from "@/store";
 
 interface ICommentToDisc {
   data: CommentsFromADiscussion;
@@ -11,6 +16,19 @@ interface ICommentToDisc {
 
 const CommentsToDiscussion: React.FC<ICommentToDisc> = ({ data, groupId }) => {
   const [isReplyToComment, setIsReplyToComment] = useState<boolean>(false);
+  const [commentMsg, setCommentMsg] = useState<string>("")
+  const dispatch = useAppDispatch()
+  const commentLike = useAppSelector((state: RootState) => state.likeAComment)
+  const commentDislike = useAppSelector((state: RootState) => state.dislikeAComment)
+
+  useEffect(() => {
+    if (commentLike.likeACommentError) {
+      setCommentMsg(commentLike.likeACommentError)
+    }
+    if (commentDislike.dislikeACommentError) {
+      setCommentMsg(commentDislike.dislikeACommentError)
+    }
+  }, [])
 
   const handleIsReplyToComment = () => {
     setIsReplyToComment((prevState) => !prevState);
@@ -28,8 +46,34 @@ const CommentsToDiscussion: React.FC<ICommentToDisc> = ({ data, groupId }) => {
         const replyDislikes = comment.Replies.filter(
           (reply) => reply.dislikes === 1
         );
-        console.log("reply likes", replyLikes.length);
-        console.log("reply dislikes", replyDislikes.length);
+
+        const handleReplyThumbsUp = async () => {
+          const discussionDt = {
+            groupId,
+            discussionId: data.data.discussion.id,
+          };
+          const discussionData = {
+            data: {
+              comment_id: comment.id,
+            },
+          };
+          await dispatch(likeAComment(discussionData))
+          await dispatch(discussionComments(discussionDt));
+        }
+
+        const handleReplyThumbsDown = async () => {
+          const discussionDt = {
+            groupId,
+            discussionId: data.data.discussion.id,
+          };
+          const discussionData = {
+            data: {
+              comment_id: comment.id,
+            },
+          };
+          await dispatch(dislikeAComment(discussionData))
+          await dispatch(discussionComments(discussionDt));
+        }
 
         const sanitizedImage =
           comment &&
@@ -79,6 +123,9 @@ const CommentsToDiscussion: React.FC<ICommentToDisc> = ({ data, groupId }) => {
                     </div>
                   </div>
                 )}
+                {commentMsg && (
+                  <div className="flex text-center text-xs text-red-500 italic bg-white p-2 rounded-lg mt-2">{commentMsg}</div>
+                )}
                 <div className="flex sm:justify-start sm:space-x-7 justify-between mt-2">
                   <div className="flex space-x-1 mt-1">
                     <i
@@ -91,13 +138,13 @@ const CommentsToDiscussion: React.FC<ICommentToDisc> = ({ data, groupId }) => {
                     </span>
                   </div>
                   <div className="flex space-x-1 mt-1">
-                    <i className="bi bi-hand-thumbs-up text-white cursor-pointer"></i>
+                    <i onClick={handleReplyThumbsUp} className="bi bi-hand-thumbs-up text-white cursor-pointer"></i>
                     <span className="text-white text-xs italic">
                       {replyLikes.length}
                     </span>
                   </div>
                   <div className="flex space-x-1 mt-1">
-                    <i className="bi bi-hand-thumbs-down text-white cursor-pointer"></i>
+                    <i onClick={handleReplyThumbsDown} className="bi bi-hand-thumbs-down text-white cursor-pointer"></i>
                     <span className="text-white text-xs italic">
                       {replyDislikes.length}
                     </span>
@@ -114,9 +161,9 @@ const CommentsToDiscussion: React.FC<ICommentToDisc> = ({ data, groupId }) => {
                 closeComment={closeComment}
                 isComment={false}
                 isReplyToComment={isReplyToComment}
-                discussion_id={data.data.discussion.id}
+                discussion_id={comment.id}
                 groupId={groupId}
-                // comment_id={comm}
+              // comment_id={comm}
               />
             </div>
           </div>

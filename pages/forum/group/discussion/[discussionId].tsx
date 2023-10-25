@@ -42,7 +42,6 @@ const DiscussionDetail: NextPage = () => {
     (state: RootState) => state.discussionComments
   );
 
-  console.log("comments data", commentsData.data);
   const {
     handleOnMouseEnter,
     handleOnMouseLeave,

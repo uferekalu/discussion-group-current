@@ -55,6 +55,7 @@ const dislikADiscussionSlice = createSlice({
           ...state,
           dislikeADiscussionStatus: "success",
           message: action.payload,
+          dislikeADiscussionError: ""
         };
       } else {
         return state;
@@ -64,7 +65,7 @@ const dislikADiscussionSlice = createSlice({
       return {
         ...state,
         dislikeADiscussionStatus: "rejected",
-        dislikeADiscussionError: action.payload,
+        dislikeADiscussionError: action.payload.error,
       };
     });
   },

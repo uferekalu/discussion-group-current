@@ -55,6 +55,7 @@ const likADiscussionSlice = createSlice({
           ...state,
           likeADiscussionStatus: "success",
           message: action.payload,
+          likeADiscussionError: ""
         };
       } else {
         return state;
@@ -64,7 +65,7 @@ const likADiscussionSlice = createSlice({
       return {
         ...state,
         likeADiscussionStatus: "rejected",
-        likeADiscussionError: action.payload,
+        likeADiscussionError: action.payload.error,
       };
     });
   },

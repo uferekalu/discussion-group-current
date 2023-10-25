@@ -4,6 +4,7 @@ import { Reusables } from "@/utils/Reusables";
 import { useAppDispatch } from "@/store/hook";
 import { makeCommentDiscussion } from "@/slices/makeACommentSlice";
 import { discussionComments } from "@/slices/commentsFromDiscussion";
+import { replyAComment } from "@/slices/replyACommentSlice";
 
 interface CommentComp {
   closeComment: () => void;
@@ -23,7 +24,6 @@ const CommentComp: React.FC<CommentComp> = ({
   const dispatch = useAppDispatch();
   const { setHoverButton, hoverButton, buttonVariants } = Reusables();
   const [content, setContent] = useState<string>("");
-  console.log("content", content);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
@@ -46,18 +46,25 @@ const CommentComp: React.FC<CommentComp> = ({
     setContent("");
   };
 
-  // const handleSubmitReply = async () => {
-  //   const data = {
-  //     data: {
-  //       content,
-  //       discussion_id,
-  //     },
-  //   };
-  //   await dispatch(makeCommentDiscussion(data));
-  // };
+  const handleSubmitReply = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const discussionData = {
+      groupId,
+      discussionId: discussion_id,
+    };
+    const data = {
+      data: {
+        content,
+        comment_id: discussion_id,
+      },
+    };
+    await dispatch(replyAComment(data));
+    await dispatch(discussionComments(discussionData));
+    setContent("");
+  };
   return (
     <form
-      onSubmit={isComment ? handleSubmitComment : undefined}
+      onSubmit={isComment ? handleSubmitComment : isReplyToComment ? handleSubmitReply : undefined}
       className="flex flex-col w-full rounded-lg mt-2 p-2"
     >
       <textarea
@@ -81,9 +88,8 @@ const CommentComp: React.FC<CommentComp> = ({
           // }
           onMouseEnter={() => setHoverButton("Comment")}
           onMouseLeave={() => setHoverButton(null)}
-          className={`bg-blue-500 p-2 sm:w-1/4 w-1/2 mt-2 rounded-lg shadow-lg text-white text-xs ${
-            hoverButton === "Comment" ? "hover:bg-pink-500" : ""
-          }`}
+          className={`bg-blue-500 p-2 sm:w-1/4 w-1/2 mt-2 rounded-lg shadow-lg text-white text-xs ${hoverButton === "Comment" ? "hover:bg-pink-500" : ""
+            }`}
         >
           {"Comment"}
         </motion.button>
@@ -96,9 +102,8 @@ const CommentComp: React.FC<CommentComp> = ({
           }}
           onMouseEnter={() => setHoverButton("Cancel")}
           onMouseLeave={() => setHoverButton(null)}
-          className={`bg-teal-500 p-2 sm:w-1/4 w-1/2 mt-2 rounded-lg shadow-lg text-white text-xs ${
-            hoverButton === "Cancel" ? "hover:bg-pink-500" : ""
-          }`}
+          className={`bg-teal-500 p-2 sm:w-1/4 w-1/2 mt-2 rounded-lg shadow-lg text-white text-xs ${hoverButton === "Cancel" ? "hover:bg-pink-500" : ""
+            }`}
         >
           {"Cancel"}
         </motion.button>
